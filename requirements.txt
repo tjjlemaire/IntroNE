@@ -1,0 +1,8 @@
+colorlog
+tqdm
+numpy
+scipy
+pandas
+matplotlib
+seaborn
+ipywidgets
