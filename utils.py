@@ -2,8 +2,9 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-02 15:58:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-03 08:46:52
+# @Last Modified time: 2022-02-03 14:25:56
 
+import logging
 import numpy as np
 from ipywidgets import interact, FloatSlider
 from logger import logger
@@ -58,16 +59,19 @@ def simulate(model, tstop, stim=None, dt=DT):
     return solver(y0, tstop)
 
 
-def sim_and_plot(model, I=0, tpulse=30., tstop=60., **kwargs):
+def sim_and_plot(model, I=0, tpulse=30., tstop=60., hard_ylims=False, **kwargs):
     ''' Run simluation with specific pulse amplitude and plot results '''
     stim = CurrentPulseTrain(I=I, tpulse=tpulse)
     solution = simulate(model, tstop, stim=stim)
+    solution.hard_ylims = hard_ylims
     return solution.plot_all(model.compute_currents, stim=stim, **kwargs)
 
 
 def interactive_simulation(*args, Imin=-15., Imax=60., **kwargs):
     ''' Run simulation upon slider move and plot results in interactive figure '''
+    logger.setLevel(logging.WARNING)
     fig = sim_and_plot(*args, **kwargs)
+    logger.setLevel(logging.INFO)
     def update(I=0.0):
         sim_and_plot(*args, **kwargs, I=I, fig=fig)
     return interact(update, I=FloatSlider(min=Imin, max=Imax, step=(Imax - Imin) / 100, continuous_update=False))

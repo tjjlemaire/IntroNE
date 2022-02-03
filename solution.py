@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-01 18:50:11
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-02 00:08:45
+# @Last Modified time: 2022-02-03 14:23:35
 
 import pandas as pd
 import numpy as np
@@ -16,8 +16,9 @@ from constants import *
 class Solution(pd.DataFrame):
     ''' Wrapper around pandas DataFrame containing a simulation solution '''
 
-    def __init__(self, data):
+    def __init__(self, data, hard_ylims=False):
         super().__init__(data)
+        self.hard_ylims = hard_ylims
 
     @property
     def states(self):
@@ -30,12 +31,21 @@ class Solution(pd.DataFrame):
 
     @staticmethod
     def set_soft_ylims(ax, my_ylims):
+        ''' Set a minimum y-axis range, but expand it if data exceeds that range '''
         ax.autoscale(True)
         ymin, ymax = ax.get_ylim()
         ax.set_ylim(min(my_ylims[0], ymin), max(my_ylims[1], ymax))
 
+    def set_ylims(self, ax, my_ylims):
+        ''' Set y-axis limits '''
+        if self.hard_ylims:
+            ax.set_ylim(*my_ylims)
+        else:
+            self.set_soft_ylims(ax, my_ylims)
+
     @staticmethod
     def update_axis(ax):
+        ''' Update axis scaling '''
         ax.relim()
         ax.autoscale_view()
 
@@ -63,7 +73,7 @@ class Solution(pd.DataFrame):
             ax.plot(self[TIME], self[VOLTAGE], c='k')
             if stim is not None:
                 self.add_stim_mark(stim, ax)
-        self.set_soft_ylims(ax, V_LIMS)
+        self.set_ylims(ax, V_LIMS)
         if update and redraw:
             fig.canvas.draw()
         return fig
@@ -87,7 +97,7 @@ class Solution(pd.DataFrame):
             ax.legend()
             if stim is not None:
                 self.add_stim_mark(stim, ax)
-        self.set_soft_ylims(ax, STATES_LIMS)
+        self.set_ylims(ax, STATES_LIMS)
         if update and redraw:
             fig.canvas.draw()
         return fig    
@@ -128,7 +138,7 @@ class Solution(pd.DataFrame):
             self.update_axis(ax)
         else:
             ax.legend()
-        self.set_soft_ylims(ax, I_LIMS)
+        self.set_ylims(ax, I_LIMS)
         if update and redraw:
             fig.canvas.draw()
         return fig
