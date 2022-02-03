@@ -2,14 +2,21 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-02 15:58:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-02 16:14:06
+# @Last Modified time: 2022-02-03 08:46:52
 
+import numpy as np
 from ipywidgets import interact, FloatSlider
 from logger import logger
 from constants import DT
 from simulators import *
 from stimulus import CurrentPulseTrain
 from model import Model
+
+
+def vtrap(x, y):
+    ''' Generic function used to compute rate constants. '''
+    return x / (np.exp(x / y) - 1)
+
 
 def initialize_model(*args, **kwargs):
     ''' Interface function to initialize a model. '''
