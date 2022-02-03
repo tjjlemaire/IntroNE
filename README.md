@@ -13,9 +13,13 @@ Code material for the interactive sessions of the NYU course "Introduction to Ne
 - Install the code dependencies: `pip install -r requirements.txt`
 - You're all set!
 
-## Use
+## Session 1 (2022.02.03)
 
 - Start a jupyter notebook session: `jupyter notebook`
 - Open the notebook named `tuto_HH.ipynb`
 - Make sure that jupyter is running with the right kernel (`Python 3.8.12 64-bit ('introne': conda)`). If that's not the case, go to `Kernel -> Change Kernel` and select the appropriate kernel.
 - You're all set!
+
+## Questions
+
+For any questions, you can contact me by email: theo.lemaire@nyulangone.org
