@@ -13,12 +13,15 @@ Code material for the interactive sessions of the NYU course "Introduction to Ne
 - Install the code dependencies: `pip install -r requirements.txt`
 - You're all set!
 
-## Session 1 (2022.02.03)
+## Session 1 (2022.02.03) - tutorial on the action potential dynamics and Hodgkin-Huxley model.
 
+To execute the notebook locally:
 - Start a jupyter notebook session: `jupyter notebook`
 - Open the notebook named `tuto_HH.ipynb`
 - Make sure that jupyter is running with the right kernel (`Python 3.8.12 64-bit ('introne': conda)`). If that's not the case, go to `Kernel -> Change Kernel` and select the appropriate kernel.
 - You're all set!
+
+Alternatively, you can run the notebook directly in your browser using this Binder link: https://mybinder.org/v2/gh/tjjlemaire/IntroNE/1edb281a439b44561ac31d38ddec9c5ae5996e2c?urlpath=lab%2Ftree%2Ftuto_HH.ipynb
 
 ## Questions
 
