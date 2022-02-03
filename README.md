@@ -6,7 +6,7 @@ Code material for the interactive sessions of the NYU course "Introduction to Ne
 
 - Download and install a Python distribution from https://www.anaconda.com/download/ using the Anaconda installer
 - Open the Anaconda prompt
-- Clone this repository: `git clone https://github.com/tjjlemaire/IntroNE.git`
+- Clone this repository: `git clone https://github.com/tjjlemaire/IntroNE.git`. To do this you will need to have Git installed on your computer (you can download it from https://git-scm.com/downloads). Alternatively, you can download the code archive and unzip it.
 - Move to the code folder: `cd IntroNE`
 - Create a new anaconda environment: `conda create -n introne python=3.8`
 - Activate the anaconda environment `conda activate introne`
