@@ -2,10 +2,9 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 12:22:04
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-01 18:31:48
+# @Last Modified time: 2022-02-07 10:05:16
 
 import numpy as np
-from utils import *
 
 
 class PulseTrain:

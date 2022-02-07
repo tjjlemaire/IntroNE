@@ -2,12 +2,13 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-01 18:50:11
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-03 14:23:35
+# @Last Modified time: 2022-02-07 17:08:22
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from model import Model
 
 from logger import *
 from constants import *
@@ -56,8 +57,8 @@ class Solution(pd.DataFrame):
         for t1, t2 in zip(t_off_on, t_on_off):
             ax.axvspan(t1, t2, color='silver', alpha=0.3)
 
-    def plot_voltage(self, ax=None, stim=None, update=False, redraw=True):
-        ''' plot solution voltage time course '''
+    def plot_var(self, key, ax=None, stim=None, update=False, redraw=True, ylims=None):
+        ''' plot variable time course '''
         if ax is None:
             fig, ax = plt.subplots()
             sns.despine(ax=ax)
@@ -66,17 +67,22 @@ class Solution(pd.DataFrame):
             fig = ax.get_figure()
         if update:
             line = ax.get_lines()[0]
-            line.set_ydata(self[VOLTAGE])
+            line.set_ydata(self[key])
             self.update_axis(ax)
         else:
-            ax.set_ylabel(VOLTAGE)
-            ax.plot(self[TIME], self[VOLTAGE], c='k')
+            ax.set_ylabel(key)
+            ax.plot(self[TIME], self[key], c='k')
             if stim is not None:
                 self.add_stim_mark(stim, ax)
-        self.set_ylims(ax, V_LIMS)
+        if ylims is not None:
+            self.set_ylims(ax, ylims)
         if update and redraw:
             fig.canvas.draw()
         return fig
+
+    def plot_voltage(self, *args, **kwargs):
+        ''' plot solution voltage time course '''
+        return self.plot_var(VOLTAGE, *args, ylims=V_LIMS, **kwargs)
 
     def plot_states(self, ax=None, stim=None, update=False, redraw=True):
         ''' plot solution states time course '''
@@ -110,6 +116,8 @@ class Solution(pd.DataFrame):
             ax.set_xlabel(TIME)
         else:
             fig = ax.get_figure()
+        if isinstance(cfuncs, Model):
+            cfuncs = cfuncs.compute_currents
         currents = cfuncs(self[VOLTAGE], self)
         if currents:
             i_cap = -pd.concat(currents.values(), axis=1).sum(axis=1)
@@ -168,5 +176,4 @@ class Solution(pd.DataFrame):
         else:
             fig.canvas.draw()
         return fig
-
 

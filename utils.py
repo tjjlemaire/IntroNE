@@ -2,21 +2,16 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-02 15:58:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-03 14:25:56
+# @Last Modified time: 2022-02-07 17:08:58
 
 import logging
 import numpy as np
 from ipywidgets import interact, FloatSlider
 from logger import logger
-from constants import DT
+from constants import DT, MV_TO_UV
 from simulators import *
 from stimulus import CurrentPulseTrain
 from model import Model
-
-
-def vtrap(x, y):
-    ''' Generic function used to compute rate constants. '''
-    return x / (np.exp(x / y) - 1)
 
 
 def initialize_model(*args, **kwargs):
@@ -59,9 +54,9 @@ def simulate(model, tstop, stim=None, dt=DT):
     return solver(y0, tstop)
 
 
-def sim_and_plot(model, I=0, tpulse=30., tstop=60., hard_ylims=False, **kwargs):
+def sim_and_plot(model, I=0, tpulse=30., tstop=60., tstart=5., hard_ylims=False, **kwargs):
     ''' Run simluation with specific pulse amplitude and plot results '''
-    stim = CurrentPulseTrain(I=I, tpulse=tpulse)
+    stim = CurrentPulseTrain(I=I, tpulse=tpulse, tstart=tstart)
     solution = simulate(model, tstop, stim=stim)
     solution.hard_ylims = hard_ylims
     return solution.plot_all(model.compute_currents, stim=stim, **kwargs)
@@ -75,3 +70,15 @@ def interactive_simulation(*args, Imin=-15., Imax=60., **kwargs):
     def update(I=0.0):
         sim_and_plot(*args, **kwargs, I=I, fig=fig)
     return interact(update, I=FloatSlider(min=Imin, max=Imax, step=(Imax - Imin) / 100, continuous_update=False))
+
+
+def interactive_extracellular(data, phi_func, rmin=10., rmax=1000., **kwargs):
+    ''' Plot extracellular potential profile as a function of distance to neuron in interactive figure '''
+    logger.setLevel(logging.WARNING)
+    data['phi (uV)'] = phi_func(data, rmin)
+    fig = data.plot_var('phi (uV)', **kwargs)
+    logger.setLevel(logging.INFO)
+    def update(r=0.0):
+        data['phi (uV)'] = phi_func(data, r)
+        data.plot_var('phi (uV)', ax=fig.axes[0], update=True, redraw=False, **kwargs)
+    return interact(update, r=FloatSlider(min=rmin, max=rmax, step=(rmax - rmin) / 100, continuous_update=False))

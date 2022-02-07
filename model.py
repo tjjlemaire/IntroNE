@@ -2,11 +2,20 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 10:35:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-02 14:27:34
+# @Last Modified time: 2022-02-07 11:32:38
 
+import numpy as np
 import re
 from scipy.optimize import brentq
 import inspect
+
+from constants import MA_CM2_TO_UA_CM2
+
+
+def vtrap(x, y):
+    ''' Generic function used to compute rate constants. '''
+    return x / (np.exp(x / y) - 1)
+    
 
 class Model:
 
@@ -104,3 +113,77 @@ class Model:
             Vm0 = brentq(  # steady-state membrane potential (mV)
                 lambda v: self.i_membrane(v, self.compute_eq_states(v)), -100., 50.)
         return {'Vm': Vm0, **self.compute_eq_states(Vm0)}
+
+
+class PyramidalNeuron(Model):
+
+    Cm0 = 1.0        # Membrane capacitance (uF/cm2)
+    ELeak = -70.3    # Leakage reversal potential (mV)
+    ENa = 50.0       # Sodium reversal potential (mV)
+    EK = -90.0       # Potassium reversal potential (mV)
+    V_T = -56.2      # Spike threshold adjustment parameter (mV)
+    gLeak = 2.05e-5  # Leakage maximal channel conductance (S/cm2)
+    gNa_bar = 0.056  # Sodium maximal channel conductance (S/cm2)
+    gK_bar = 0.006   # Potassium maximal channel conductance (S/cm2)
+
+    def __init__(self):
+        super().__init__(Cm=self.Cm0)
+        self.add_current(self.i_Leak)
+        self.add_state(self.dm_dt, self.m_inf)
+        self.add_state(self.dh_dt, self.h_inf)
+        self.add_current(self.i_Na)
+        self.add_state(self.dn_dt, self.n_inf)
+        self.add_current(self.i_K)
+
+    #--------------------- Leakage current ---------------------
+
+    def i_Leak(self, Vm):
+        return self.gLeak * (Vm - self.ELeak) * MA_CM2_TO_UA_CM2  # uA/cm2
+    
+    #--------------------- Sodium current ---------------------
+
+    def alpha_m(self, Vm):
+        return 0.32 * vtrap(13 - (Vm - self.V_T), 4)  # ms-1
+
+    def beta_m(self, Vm):
+        return 0.28 * vtrap((Vm - self.V_T) - 40, 5)  # ms-1
+
+    def dm_dt(self, m, Vm):
+        return self.alpha_m(Vm) * (1 - m) - self.beta_m(Vm) * m  # ms-1
+
+    def m_inf(self, Vm):
+        return self.alpha_m(Vm) / (self.alpha_m(Vm) + self.beta_m(Vm))  # (-)
+
+    def alpha_h(self, Vm):
+        return 0.128 * np.exp(-((Vm - self.V_T) - 17) / 18)  # ms-1
+
+    def beta_h(self, Vm):
+        return 4 / (1 + np.exp(-((Vm - self.V_T) - 40) / 5))  # ms-1
+
+    def dh_dt(self, h, Vm):
+        return self.alpha_h(Vm) * (1 - h) - self.beta_h(Vm) * h
+
+    def h_inf(self, Vm):
+        return self.alpha_h(Vm) / (self.alpha_h(Vm) + self.beta_h(Vm))
+
+    def i_Na(self, m, h, Vm):
+        return self.gNa_bar * m**3 * h * (Vm - self.ENa) * MA_CM2_TO_UA_CM2  # uA/cm2
+
+    #--------------------- Potassium current ---------------------
+
+    def alpha_n(self, Vm):
+        return 0.032 * vtrap(15 - (Vm - self.V_T), 5)  # ms-1
+
+    def beta_n(self, Vm):
+        return 0.5 * np.exp(-((Vm - self.V_T) - 10) / 40)  # ms-1
+
+    def dn_dt(self, n, Vm):
+        return self.alpha_n(Vm) * (1 - n) - self.beta_n(Vm) * n  # ms-1
+
+    def n_inf(self, Vm):
+        return self.alpha_n(Vm) / (self.alpha_n(Vm) + self.beta_n(Vm))  # (-)
+
+    def i_K(self, n, Vm):
+        return self.gK_bar * n**4 * (Vm - self.EK)  * MA_CM2_TO_UA_CM2  # uA/cm2
+
+

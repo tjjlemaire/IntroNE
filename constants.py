@@ -2,7 +2,14 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 10:39:57
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-02 00:45:50
+# @Last Modified time: 2022-02-07 16:43:45
+
+# Model conversion constants
+
+MA_CM2_TO_UA_CM2 = 1e3
+UM2_TO_CM2 = 1e-8
+MV_TO_UV = 1e3
+UA_TO_NA = 1e3
 
 # Simulations
 DT = 0.05  # simulation time step (ms)
