@@ -19,13 +19,13 @@ Code material for the interactive "recitations" of the NYU course "Introduction 
 
 To execute a notebook locally:
 - Open an anaconda prompt
-- Activate the anaconda environment `conda activate introne`
+- Activate the anaconda environment: `conda activate introne`
 - Move to this repository
 - Download the latest updates from the online repository: `git pull`
 - Install the code dependencies: `pip install -r requirements.txt`
 - Start a jupyter lab session: `jupyter lab`
 - Open the notebook of interest by double-clicking on it
-- Make sure that jupyter is running with the right kernel (`Python 3.8.12 64-bit ('introne': conda)`). If that's not the case, go to `Kernel -> Change Kernel` and select the appropriate kernel.
+- In the upper right corner, make sure that jupyter is running with the right kernel (`Python 3.8.12 64-bit ('introne': conda)`). If not, click and select the appropriate kernel from the drop-down list.
 - You're all set!
 
 ## Online use
