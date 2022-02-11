@@ -8,3 +8,4 @@ seaborn
 ipywidgets
 jupyterlab
 ipympl
+sklearn

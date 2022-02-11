@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-01 18:50:11
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-07 17:08:22
+# @Last Modified time: 2022-02-11 14:30:56
 
 import pandas as pd
 import numpy as np
@@ -24,11 +24,11 @@ class Solution(pd.DataFrame):
     @property
     def states(self):
         ''' Automatically extract state names from solution dataset '''
-        return list(set(self.columns) - set((TIME, VOLTAGE)))
+        return list(set(self.columns) - set((TIME_MS, V_MV)))
 
     def plot(self, *args, **kwargs):
         ''' Wrapper around pandas plot, using time as x variable '''
-        return super().plot(x=TIME)
+        return super().plot(x=TIME_MS)
 
     @staticmethod
     def set_soft_ylims(ax, my_ylims):
@@ -62,7 +62,7 @@ class Solution(pd.DataFrame):
         if ax is None:
             fig, ax = plt.subplots()
             sns.despine(ax=ax)
-            ax.set_xlabel(TIME)
+            ax.set_xlabel(TIME_MS)
         else:
             fig = ax.get_figure()
         if update:
@@ -71,7 +71,7 @@ class Solution(pd.DataFrame):
             self.update_axis(ax)
         else:
             ax.set_ylabel(key)
-            ax.plot(self[TIME], self[key], c='k')
+            ax.plot(self[TIME_MS], self[key], c='k')
             if stim is not None:
                 self.add_stim_mark(stim, ax)
         if ylims is not None:
@@ -82,14 +82,14 @@ class Solution(pd.DataFrame):
 
     def plot_voltage(self, *args, **kwargs):
         ''' plot solution voltage time course '''
-        return self.plot_var(VOLTAGE, *args, ylims=V_LIMS, **kwargs)
+        return self.plot_var(V_MV, *args, ylims=V_LIMS, **kwargs)
 
     def plot_states(self, ax=None, stim=None, update=False, redraw=True):
         ''' plot solution states time course '''
         if ax is None:
             fig, ax = plt.subplots()
             sns.despine(ax=ax)
-            ax.set_xlabel(TIME)
+            ax.set_xlabel(TIME_MS)
         else:
             fig = ax.get_figure()
         if update:
@@ -99,7 +99,7 @@ class Solution(pd.DataFrame):
         else:
             ax.set_ylabel('states')
             for k in self.states:
-                ax.plot(self[TIME], self[k], label=k)
+                ax.plot(self[TIME_MS], self[k], label=k)
             ax.legend()
             if stim is not None:
                 self.add_stim_mark(stim, ax)
@@ -113,29 +113,29 @@ class Solution(pd.DataFrame):
         if ax is None:
             fig, ax = plt.subplots()
             sns.despine(ax=ax)
-            ax.set_xlabel(TIME)
+            ax.set_xlabel(TIME_MS)
         else:
             fig = ax.get_figure()
         if isinstance(cfuncs, Model):
             cfuncs = cfuncs.compute_currents
-        currents = cfuncs(self[VOLTAGE], self)
+        currents = cfuncs(self[V_MV], self)
         if currents:
             i_cap = -pd.concat(currents.values(), axis=1).sum(axis=1)
         else:
             i_cap = 0
         if stim is not None:
-            tstim, Istim = stim.stim_profile(tstop=self[TIME].values[-1])
-            Istim_interp = np.interp(self[TIME], tstim, Istim)
+            tstim, Istim = stim.stim_profile(tstop=self[TIME_MS].values[-1])
+            Istim_interp = np.interp(self[TIME_MS], tstim, Istim)
             i_cap += Istim_interp
         currents.update({'i_cap': i_cap})
         if update:
             for v, line in zip(currents.values(), ax.get_lines()):
                 line.set_ydata(v)
         else:
-            ax.set_ylabel(CURRENT)
+            ax.set_ylabel(CURRENT_DENSITY)
             colors = plt.get_cmap('Dark2').colors
             for (k, v), c in zip(currents.items(), colors):
-                ax.plot(self[TIME], v, label=k, c=c)
+                ax.plot(self[TIME_MS], v, label=k, c=c)
         if stim is not None:
             if update:
                 ax.get_lines()[-1].set_ydata(Istim)
@@ -172,7 +172,7 @@ class Solution(pd.DataFrame):
                 sns.despine(ax=ax)
             for ax in axes[:-1]:
                 ax.set_xticks([])
-            axes[-1].set_xlabel(TIME)
+            axes[-1].set_xlabel(TIME_MS)
         else:
             fig.canvas.draw()
         return fig

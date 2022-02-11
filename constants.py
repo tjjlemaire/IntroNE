@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 10:39:57
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-07 16:43:45
+# @Last Modified time: 2022-02-11 14:38:16
 
 # Model conversion constants
 
@@ -15,9 +15,12 @@ UA_TO_NA = 1e3
 DT = 0.05  # simulation time step (ms)
 
 # Labels
-TIME = 'time (ms)'
-VOLTAGE = 'Vm (mV)'
-CURRENT = 'I (uA/cm2)'
+TIME_S = 'time (s)'
+TIME_MS = 'time (ms)'
+V_MV = 'Vm (mV)'
+PHI_UV = 'phi (uV)'
+CURRENT_DENSITY = 'i (uA/cm2)'
+I_NA = 'I (nA)'
 
 # Plot parameters
 V_LIMS = (-80., 50.)  # mV

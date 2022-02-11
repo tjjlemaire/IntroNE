@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 10:46:44
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-02 16:00:44
+# @Last Modified time: 2022-02-11 14:26:44
 
 import numpy as np
 from scipy.integrate import odeint, solve_ivp
@@ -128,10 +128,10 @@ class Simulator:
             :return: timeseries dataframe with labeled time and variables vectors.
         '''
         sol = Solution({
-            TIME: self.t,
+            TIME_MS: self.t,
             **{k: self.y[:, i] for i, k in enumerate(self.ykeys)}
         })
-        sol.rename(columns={'Vm': VOLTAGE}, inplace=True)
+        sol.rename(columns={'Vm': V_MV}, inplace=True)
         return sol
 
     def __call__(self, *args, max_nsamples=None, **kwargs):
