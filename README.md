@@ -44,6 +44,11 @@ Here's the link to the repo: https://mybinder.org/v2/gh/tjjlemaire/IntroNE.git/H
 - Notebook name: `tuto_extracellular_recordings.ipynb`
 - Binder link: https://mybinder.org/v2/gh/tjjlemaire/IntroNE/686ad727554944af541099cf054bb1b8bc0d6fa7?urlpath=lab%2Ftree%2Ftuto_extracellular_recording.ipynb
 
+## Session 3 (2022.02.17) - tutorial on spike detection and classification.
+
+- Notebook name: `tuto_spike_sorting.ipynb`
+- Binder link: https://mybinder.org/v2/gh/tjjlemaire/IntroNE/54782e8179eb3927d80360c6bf8a53aa30f92358?urlpath=lab%2Ftree%2Ftuto_spike_sorting.ipynb
+
 ## Questions
 
 For any questions, you can contact me by email: theo.lemaire@nyulangone.org

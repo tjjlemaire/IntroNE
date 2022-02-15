@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-11 14:35:21
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-15 13:59:57
+# @Last Modified time: 2022-02-15 14:25:21
 
 import numpy as np
 import random
@@ -44,7 +44,7 @@ def load_ncs_data(fpath):
         header_kb = 16
         fid.seek(header_kb * 1024)
         # Read data according to Neuralynx NCS data format:
-        # https://support.neuralynx.com/hc/en-us/articles/360040444811-TechTip-Neuralynx-Data-File-Formats
+        # https://neuralynx.com/software/nlx-file-formats
         ncs_fmt = np.dtype([
             ('TimeStamp', np.uint64),
             ('ChannelNumber', np.uint32),
