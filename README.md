@@ -49,6 +49,8 @@ Here's the link to the repo: https://mybinder.org/v2/gh/tjjlemaire/IntroNE.git/H
 - Notebook name: `tuto_spike_sorting.ipynb`
 - Binder link: https://mybinder.org/v2/gh/tjjlemaire/IntroNE/67473903c5b828e05e09f08683c38ca6a80a1ff8?urlpath=lab%2Ftree%2Ftuto_spike_sorting.ipynb
 
+**Note: This tutorial uses a significant amount of RAM, hence execution in the Binder environment will be ridiculously slow. It is therefore highly advised to execute the notebook locally.**
+
 ## Questions
 
 For any questions, you can contact me by email: theo.lemaire@nyulangone.org
