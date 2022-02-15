@@ -47,7 +47,7 @@ Here's the link to the repo: https://mybinder.org/v2/gh/tjjlemaire/IntroNE.git/H
 ## Session 3 (2022.02.17) - tutorial on spike detection and classification.
 
 - Notebook name: `tuto_spike_sorting.ipynb`
-- Binder link: https://mybinder.org/v2/gh/tjjlemaire/IntroNE/54782e8179eb3927d80360c6bf8a53aa30f92358?urlpath=lab%2Ftree%2Ftuto_spike_sorting.ipynb
+- Binder link: https://mybinder.org/v2/gh/tjjlemaire/IntroNE/67473903c5b828e05e09f08683c38ca6a80a1ff8?urlpath=lab%2Ftree%2Ftuto_spike_sorting.ipynb
 
 ## Questions
 
