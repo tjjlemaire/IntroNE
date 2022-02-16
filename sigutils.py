@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-11 14:35:21
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-15 14:25:21
+# @Last Modified time: 2022-02-16 09:49:08
 
 import numpy as np
 import random
@@ -227,7 +227,7 @@ def plot_signals(data, tbounds=None, xlabel=TIME_S, ylabel=PHI_UV, title='signal
     elif isinstance(keys, str):
         keys = [keys]
     # Create figure
-    fig, ax = plt.subplots(figsize=(10, 3))
+    fig, ax = plt.subplots(figsize=(11, 4))
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
@@ -268,7 +268,7 @@ def plot_frequency_spectrum(data, keys=None, xscale='log', yscale='log', band=No
     elif isinstance(keys, str):
         keys = [keys]
     # Create figure
-    fig, ax = plt.subplots(figsize=(10, 3))
+    fig, ax = plt.subplots(figsize=(11, 4))
     sns.despine(ax=ax)
     ax.set_xlabel('frequency (Hz)')
     ax.set_ylabel('PSD (uV2)')
