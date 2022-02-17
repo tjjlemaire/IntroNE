@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 12:22:04
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-07 10:05:16
+# @Last Modified time: 2022-02-17 14:36:19
 
 import numpy as np
 
@@ -68,16 +68,17 @@ class PulseTrain:
 class CurrentPulseTrain(PulseTrain):
     ''' Current pulse train object '''
 
-    def __init__(self, I=1., **kwargs):
+    def __init__(self, I=1., unit='uA/cm2', **kwargs):
         ''' Constructor.
 
-            :param I: current density (uA/cm2)
+            :param I: current
         '''
         self.I = I
+        self.unit = unit
         super().__init__(**kwargs)
 
     def inputs(self):
-        return [f'I={self.I:.2f}uA/cm2'] + super().inputs()   
+        return [f'I={self.I:.2f}{self.unit}'] + super().inputs()   
 
     def stim_events(self):
         ''' Compute (time, value) pairs for each modulation event '''
@@ -108,4 +109,15 @@ class CurrentPulseTrain(PulseTrain):
             x = np.hstack((x, [x[-1]]))
         return t, x
 
+
+class ExtracellularCurrentPulseTrain(CurrentPulseTrain):
+    ''' Extracellular current pulse train object '''
+
+    def __init__(self, pos=(0., 0., 100.), unit='uA', **kwargs):
+        ''' Constructor.
+
+            :param pos: electrode (x, y, z) position (um) 
+        '''
+        self.pos = np.asarray(pos)
+        super().__init__(unit=unit, **kwargs)
 
