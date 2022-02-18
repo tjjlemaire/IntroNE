@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 10:39:57
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-17 14:41:05
+# @Last Modified time: 2022-02-18 16:04:58
 
 # Model conversion constants
 
@@ -22,10 +22,12 @@ TIME_S = 'time (s)'
 TIME_MS = 'time (ms)'
 V_MV = 'Vm (mV)'
 PHI_UV = 'phi (uV)'
+PHI_MV = 'phi (mV)'
 CURRENT_DENSITY = 'i (uA/cm2)'
 I_NA = 'I (nA)'
+AX_POS_MM = 'axial position (mm)'
 
 # Plot parameters
-V_LIMS = (-80., 50.)  # mV
+V_LIMS = (-85., 50.)  # mV
 STATES_LIMS = (-0.1, 1.1)  # (-)
 I_LIMS = (-5., 5.)  # uA/cm2
