@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-18 17:58:10
+# @Last Modified time: 2022-02-18 20:26:07
 
 import logging
 import time
@@ -178,7 +178,7 @@ class Simulation:
         logger.debug(f'simulation completed in {tend - tstart:.2f} s')
         return tvec, vnodes
     
-    def plot_vprofile(self, ax=None):
+    def plot_vprofile(self, ax=None, update=False, redraw=False):
         '''
         Plot the spatial distribution of the extracellular potential along the fiber
         
@@ -191,14 +191,23 @@ class Simulation:
             sns.despine(ax=ax)
         else:
             fig = ax.get_figure()
-        ax.set_title('potential distribution along fiber')
-        ax.set_ylabel(PHI_MV)
         xnodes = self.fiber.xnodes  # um
         phinodes = self.get_phi(xnodes, I=self.stim.I) # mV
-        ax.plot(xnodes * 1e-3, phinodes)
+        if update:
+            line = ax.get_lines()[0]
+            line.set_xdata(xnodes * 1e-3)
+            line.set_ydata(phinodes)
+            ax.relim()
+            ax.autoscale_view()
+        else:
+            ax.set_title('potential distribution along fiber')
+            ax.set_ylabel(PHI_MV)
+            ax.plot(xnodes * 1e-3, phinodes)
+        if update and redraw:
+            fig.canvas.draw()
         return fig
     
-    def plot_activating_function(self, ax=None):
+    def plot_activating_function(self, ax=None, update=False, redraw=False):
         '''
         Plot the spatial distribution of the activating function along the fiber
         
@@ -211,28 +220,46 @@ class Simulation:
             sns.despine(ax=ax)
         else:
             fig = ax.get_figure()
-        ax.set_title('activating function along fiber')
-        ax.set_ylabel('d2_phi/dx2 (mV2/mm2)')
         xnodes = self.fiber.xnodes  # um
         phinodes = self.get_phi(xnodes, I=self.stim.I)  # mV
         d2phidx2 = self.get_activating_function(xnodes * 1e-3, phinodes)  # mV2/mm2
-        ax.plot(xnodes * 1e-3, d2phidx2)
+        if update:
+            line = ax.get_lines()[0]
+            line.set_xdata(xnodes * 1e-3)
+            line.set_ydata(d2phidx2)
+            ax.relim()
+            ax.autoscale_view()
+        else:
+            ax.set_title('activating function along fiber')
+            ax.set_ylabel('d2_phi/dx2 (mV2/mm2)')
+            ax.plot(xnodes * 1e-3, d2phidx2)
+        if update and redraw:
+            fig.canvas.draw()
         return fig
     
-    def plot_profiles(self):
+    def plot_profiles(self, fig=None):
         '''
         Plot profiles of extracellular potential and activating function along the fiber
         
         :return: figure handle
         '''
-        fig, axes = plt.subplots(2, figsize=(6, 4), sharex=True)
-        self.plot_vprofile(ax=axes[0])
-        self.plot_activating_function(ax=axes[1])
-        for ax in axes[:-1]:
-            sns.despine(ax=ax, bottom=True)
-            ax.xaxis.set_ticks_position('none')
-        sns.despine(ax=axes[-1])
-        axes[-1].set_xlabel(AX_POS_MM)
+        # Get figure
+        if fig is None:
+            fig, axes = plt.subplots(2, figsize=(6, 4), sharex=True)
+            update = False
+        else:
+            axes = fig.axes
+            update = True
+        self.plot_vprofile(ax=axes[0], update=update, redraw=False)
+        self.plot_activating_function(ax=axes[1], update=update, redraw=False)
+        if not update:
+            for ax in axes[:-1]:
+                sns.despine(ax=ax, bottom=True)
+                ax.xaxis.set_ticks_position('none')
+            sns.despine(ax=axes[-1])
+            axes[-1].set_xlabel(AX_POS_MM)
+        else:
+            fig.canvas.draw()
         return fig
 
     def plot_vmap(self, tvec, vnodes, ax=None, update=False, redraw=True):
@@ -382,6 +409,21 @@ class Simulation:
             fig.canvas.draw()
         # Return figure
         return fig
+
+
+def interactive_profiles(sim, Imin=-100., Imax=100., dzmin=10., dzmax=1000.):
+    I = FloatSlider(
+        description='I (uA)', min=Imin, max=Imax, value=0, step=(Imax - Imin) / 100, continuous_update=False)
+    dz = FloatSlider(
+        description='Δz (um)', min=dzmin, max=dzmax, value=100., step=(dzmax - dzmin) / 100, continuous_update=False)
+    ui = VBox([I, dz])
+    fig = sim.plot_profiles()
+    def update(I, dz):
+        sim.stim.I = I
+        sim.stim.pos = (0., 0., dz)
+        return sim.plot_profiles(fig=fig)
+    out = interactive_output(update, {'I': I, 'dz': dz})
+    return display(ui, out)
 
 
 def interactive_sim(sim, Imin=-100., Imax=500., PWmin=.01, PWmax=1.):
