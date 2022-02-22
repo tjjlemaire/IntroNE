@@ -2,10 +2,12 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-18 15:25:03
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-18 15:46:43
+# @Last Modified time: 2022-02-22 11:54:56
 
 import numpy as np
+from logger import logger
 from constants import *
+
 
 class VolumeConductor:
     ''' Interface to volume conductor model to represent extracellular media '''
@@ -17,6 +19,21 @@ class VolumeConductor:
         :param sigma: medium conductivity scalar or tensor (S/m)
         '''
         self.sigma = sigma
+        logger.info(f'created {self}')
+    
+    def __repr__(self):
+        return f'{self.mtype().capitalize()}{self.__class__.__name__}(sigma={self.sigma}S/m)'
+    
+    def is_isotropic(self):
+        ''' Check whether medium is isotropic '''
+        return self.sigma[0] == self.sigma[1] == self.sigma[2]
+    
+    def mtype(self):
+        ''' Medium type '''
+        s = 'isotropic'
+        if not self.is_isotropic():
+            s = f'an{s}'
+        return s
     
     @property
     def sigma(self):

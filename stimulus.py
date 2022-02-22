@@ -2,9 +2,10 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 12:22:04
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-17 14:36:19
+# @Last Modified time: 2022-02-22 11:48:25
 
 import numpy as np
+from logger import logger
 
 
 class PulseTrain:
@@ -120,4 +121,6 @@ class ExtracellularCurrentPulseTrain(CurrentPulseTrain):
         '''
         self.pos = np.asarray(pos)
         super().__init__(unit=unit, **kwargs)
+        logger.info(f'created {self}')
+
 

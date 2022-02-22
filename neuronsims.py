@@ -3,17 +3,20 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-18 20:26:07
+# @Last Modified time: 2022-02-22 16:48:42
 
 import logging
+import inspect
+from multiprocessing.sharedctypes import Value
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 from matplotlib import cm
 import seaborn as sns
 from neuron import h
 from IPython.display import display
-from ipywidgets import interact, FloatSlider, VBox, interactive_output
+from ipywidgets import VBox, interactive_output
 
 from constants import *
 from logger import logger
@@ -123,12 +126,40 @@ class Simulation:
         :param I: current amplitude
         :return: extracellular membrane voltage (mV)
         '''
-        if isinstance(x, (np.ndarray, list, tuple)):
+        # If 1D array provided, assume vector of axial (x) positions
+        if isinstance(x, (list, tuple)) or (isinstance(x, np.ndarray) and x.ndim == 1):
             x = np.vstack((np.atleast_2d(x), np.zeros((2, x.size)))).T
+        # Other array cases
+        elif isinstance(x, np.ndarray):
+            # If 2D array provided, assume vector of x, y, z positions
+            if x.ndim == 2:
+                dims = x.shape
+                if dims[1] != 3:
+                    raise ValueError('2D arrays must have the shape (npoints, 3)')
+            else:
+                raise ValueError('only 1D and 2D coordinate arrays are accepted')
+        # If scalar provided, assume it is the axial coordinate and fill the rest with zeros
         else:
             x = np.array((x, 0., 0.))
         d = self.fiber.pos + x - self.stim.pos  # (um, um, um)
         return self.medium.phi(I, d)
+    
+    def get_phi_map(self, x, y):
+        '''
+        Compute extracellular potential map over a grid of x and y coordinates
+
+        :param x: vector of x (axial) coordinates (um)
+        :param y: vector of y (transverse) coordinates (um)
+        :return: 2D (nx, ny) array of extracellular potential values (mV)  
+        '''
+        # Construct 3D meshgrid from x and y vectors (adding a zero z vector)
+        X, Y, Z = np.meshgrid(x, y, [0])
+        # Flatten meshgrid onto coordinates array
+        coords = np.vstack((X.ravel(), Y.ravel(), Z.ravel())).T
+        # Compute extracellular potential value for each coordinate
+        phis = self.get_phi(coords)
+        # Reshape result to initial 2D field
+        return np.reshape(phis, (x.size, y.size))
     
     def get_activating_function(self, x, phi):
         ''' Compute activating function from a distribution of positions and voltages '''
@@ -177,6 +208,58 @@ class Simulation:
         tend = time.perf_counter()
         logger.debug(f'simulation completed in {tend - tstart:.2f} s')
         return tvec, vnodes
+
+    def plot_phi_map(self, x, y, ax=None, update=False, redraw=True, scale='log'):
+        '''
+        Plot 2D colormap of extracellular potential across a 2D space
+        
+        :param x: vector of x (axial) coordinates (um)
+        :param y: vector of y (transverse) coordinates (um)
+        :param ax (optional): axis on which to plot
+        :param update: whether to update an existing figure or not
+        :param redraw: whether to redraw figure upon update
+        :return: figure handle
+        '''
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(6, 6))
+            ax.set_xlabel(TIME_MS)
+            sns.despine(ax=ax, offset={'left': 10., 'bottom': 10})
+        else:
+            fig = ax.get_figure()
+        # Compute 2D field of values
+        phis = self.get_phi_map(x, y)
+        # Get normalizer and scalar mapable
+        philims = (phis.min(), phis.max())
+        if scale == 'lin':
+            norm = plt.Normalize(*philims)
+        else:
+            norm = LogNorm(*philims)
+        sm = cm.ScalarMappable(norm=norm, cmap='viridis')
+        if not update:
+            # Plot map
+            ax.set_xlabel(AX_POS_MM)
+            ax.set_ylabel('transverse position (mm)')
+            self.pm = ax.pcolormesh(x * 1e-3, y * 1e-3, phis, norm=norm, cmap='viridis')
+            fig.subplots_adjust(right=0.8)
+            pos = ax.get_position()
+            self.cax = fig.add_axes([pos.x1 + .02, pos.y0, 0.02, pos.y1 - pos.y0])
+            self.cbar = fig.colorbar(sm, cax=self.cax)
+            # Plot contour level
+            phisign = np.sign(philims[1])
+            zcontour = max(np.abs(philims)) / 10
+            # zcontour = np.power(10, np.floor(np.log10(zcontour)))
+            ax.contour(x, y, phis, [zcontour * phisign])
+        else:
+            self.pm.set_array(phis)
+            self.cbar.update_normal(sm)
+        # Add colorbar
+        if scale == 'lin':
+            self.cbar.set_ticks(philims)
+        if not update:
+            self.cbar.set_label(PHI_MV, labelpad=-15)
+        if update and redraw:
+            fig.canvas.draw()
+        return fig
     
     def plot_vprofile(self, ax=None, update=False, redraw=False):
         '''
@@ -201,7 +284,7 @@ class Simulation:
             ax.autoscale_view()
         else:
             ax.set_title('potential distribution along fiber')
-            ax.set_ylabel(PHI_MV)
+            ax.set_ylabel('φ (mV)')
             ax.plot(xnodes * 1e-3, phinodes)
         if update and redraw:
             fig.canvas.draw()
@@ -231,7 +314,7 @@ class Simulation:
             ax.autoscale_view()
         else:
             ax.set_title('activating function along fiber')
-            ax.set_ylabel('d2_phi/dx2 (mV2/mm2)')
+            ax.set_ylabel('d2φ/dx2 (mV2/mm2)')
             ax.plot(xnodes * 1e-3, d2phidx2)
         if update and redraw:
             fig.canvas.draw()
@@ -262,7 +345,7 @@ class Simulation:
             fig.canvas.draw()
         return fig
 
-    def plot_vmap(self, tvec, vnodes, ax=None, update=False, redraw=True):
+    def plot_vmap(self, tvec, vnodes, ax=None, update=False, redraw=True, add_rec_locations=False):
         '''
         Plot 2D colormap of membrane potential across nodes and time
 
@@ -271,6 +354,8 @@ class Simulation:
         :param ax (optional): axis on which to plot
         :param update: whether to update an existing figure or not
         :param redraw: whether to redraw figure upon update
+        :param add_rec_locations: whether to add recruitment locations (predicted from
+            activatinvg function) on the map
         :return: figure handle
         '''
         y = self.fiber.xnodes * 1e-3  # mm
@@ -299,6 +384,25 @@ class Simulation:
         self.cbar.set_ticks(vlims)
         if not update:
             self.cbar.set_label(V_MV, labelpad=-15)
+        if add_rec_locations:
+            # Compute activating function profile
+            xnodes = self.fiber.xnodes  # um
+            phinodes = self.get_phi(xnodes, I=self.stim.I)  # mV
+            d2phidx2 = self.get_activating_function(xnodes * 1e-3, phinodes)  # mV2/mm2 
+            # Infer recruitment location(s) from maximum point(s) of activating function
+            psimax = np.max(d2phidx2)
+            if psimax > 0.: 
+                irecnodes = np.where(np.isclose(d2phidx2, psimax))
+                xrec = xnodes[irecnodes]
+            # Remove previous lines
+            if update:
+                lines = ax.get_lines()
+                while lines:
+                    l = lines.pop(0)
+                    l.remove()
+            # Add current lines
+            for x in xrec:
+                ax.axhline(x * 1e-3, c='r', ls='--')
         if update and redraw:
             fig.canvas.draw()
         return fig
@@ -360,6 +464,9 @@ class Simulation:
         else:
             fig = ax.get_figure()
         tstim, Istim = self.stim.stim_profile()
+        if tstim[-1] > self.tstop:
+            Istim = Istim[tstim < self.tstop]
+            tstim = tstim[tstim < self.tstop]
         tstim = np.hstack((tstim, [self.tstop]))
         Istim = np.hstack((Istim, [Istim[-1]]))
         if update:
@@ -411,33 +518,19 @@ class Simulation:
         return fig
 
 
-def interactive_profiles(sim, Imin=-100., Imax=100., dzmin=10., dzmax=1000.):
-    I = FloatSlider(
-        description='I (uA)', min=Imin, max=Imax, value=0, step=(Imax - Imin) / 100, continuous_update=False)
-    dz = FloatSlider(
-        description='Δz (um)', min=dzmin, max=dzmax, value=100., step=(dzmax - dzmin) / 100, continuous_update=False)
-    ui = VBox([I, dz])
-    fig = sim.plot_profiles()
-    def update(I, dz):
-        sim.stim.I = I
-        sim.stim.pos = (0., 0., dz)
-        return sim.plot_profiles(fig=fig)
-    out = interactive_output(update, {'I': I, 'dz': dz})
-    return display(ui, out)
-
-
-def interactive_sim(sim, Imin=-100., Imax=500., PWmin=.01, PWmax=1.):
-    I = FloatSlider(
-        description='I (uA)', min=Imin, max=Imax, value=0, step=(Imax - Imin) / 100, continuous_update=False)
-    PW = FloatSlider(
-        description='PW (ms)', min=PWmin, max=PWmax, value=0.1, step=(PWmax - PWmin) / 100, continuous_update=False)
-    ui = VBox([I, PW])    
-    tvec, vnodes = sim.run()
-    fig = sim.plot_results(tvec, vnodes)
-    def update(I, PW):
-        sim.stim.I = I
-        sim.stim.tpulse = PW
-        tvec, vnodes = sim.run()
-        return sim.plot_results(tvec, vnodes, fig=fig)
-    out = interactive_output(update, {'I': I, 'PW': PW})
+def interactive_display(updatefunc, *sliders):
+    '''
+    Start an interactive display
+    
+    :param updatefunc: update function that takes the slider values as input and creates/updates a figure
+    :param sliders: listr of slider objects
+    :return: interactive display
+    '''
+    params = inspect.signature(updatefunc).parameters
+    sparams = [k for k, v in params.items() if v.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
+    assert len(sparams) == len(sliders), 'number of sliders does not match update signature'
+    ui = VBox(sliders)
+    fig = updatefunc(*[s.value for s in sliders])
+    update = lambda *args, **kwargs: updatefunc(*args, fig=fig, **kwargs)
+    out = interactive_output(update, dict(zip(sparams, sliders)))
     return display(ui, out)

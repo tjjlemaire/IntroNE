@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-18 14:55:43
+# @Last Modified time: 2022-02-22 11:55:55
 
 import os
 import platform
@@ -111,7 +111,7 @@ class MyelinatedFiber:
 
     def init_parameters(self):
         ''' Initialize model parameters. '''
-        logger.info('initializting model parameters...')
+        logger.debug('initializting model parameters...')
         # Interpolate diameter-dependent parameters at current fiber diameter
         for k, v in self.fiberD_deps.items():
             setattr(self, k, interp1d(self.fiberD_ref, v, kind='linear', assume_sorted=True, fill_value='extrapolate')(self.diameter))
@@ -157,7 +157,7 @@ class MyelinatedFiber:
 
     def create_sections(self):
         ''' Create the sections of the cell. '''
-        logger.info('creating model sections...')
+        logger.debug('creating model sections...')
         self.node = [h.Section(name=f'node{x}', cell=self) for x in range(self.nnodes)]
         self.mysa = [h.Section(name=f'mysa{x}', cell=self) for x in range(self.nMYSA)]
         self.flut = [h.Section(name=f'flut{x}', cell=self) for x in range(self.nFLUT)]
@@ -176,7 +176,7 @@ class MyelinatedFiber:
 
     def build_topology(self):
         ''' connect the sections together '''
-        logger.info('connecting model sections...')
+        logger.debug('connecting model sections...')
         # PATTERN: childSection.connect(parentSection, [parentX], [childEnd])
         for i in range(self.ninters):
             self.node[i].connect(self.mysa[2 * i], 1, 0)  # node -> MYSA
@@ -190,7 +190,7 @@ class MyelinatedFiber:
 
     def define_biophysics(self):
         ''' Assign the membrane properties across the cell. '''
-        logger.info('defining sections biophysics...')
+        logger.debug('defining sections biophysics...')
         # Common to all sections
         for sec in self.node + self.mysa + self.flut + self.stin:
             sec.nseg = 1
