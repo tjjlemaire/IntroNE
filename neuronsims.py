@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-23 11:58:47
+# @Last Modified time: 2022-02-23 12:57:03
 
 import inspect
 import time
@@ -220,12 +220,12 @@ class Simulation:
         logger.debug(f'simulation completed in {tend - tstart:.2f} s')
         return tvec, vnodes
 
-    def plot_phi_map(self, x, y, ax=None, update=False, redraw=True, scale='log'):
+    def plot_phi_map(self, x, z, ax=None, update=False, redraw=True, scale='log'):
         '''
         Plot 2D colormap of extracellular potential across a 2D space
         
         :param x: vector of x (axial) coordinates (um)
-        :param y: vector of y (transverse) coordinates (um)
+        :param z: vector of z (transverse) coordinates (um)
         :param ax (optional): axis on which to plot
         :param update: whether to update an existing figure or not
         :param redraw: whether to redraw figure upon update
@@ -238,7 +238,7 @@ class Simulation:
         else:
             fig = ax.get_figure()
         # Compute 2D field of values
-        phis = self.get_phi_map(x, y)
+        phis = self.get_phi_map(x - self.stim.pos[0], z - self.stim.pos[-1])
         # Get normalizer and scalar mapable
         philims = (phis.min(), phis.max())
         if scale == 'lin':
@@ -250,15 +250,11 @@ class Simulation:
             # Plot map
             ax.set_xlabel(AX_POS_MM)
             ax.set_ylabel('transverse position (mm)')
-            self.pm = ax.pcolormesh(x * 1e-3, y * 1e-3, phis, norm=norm, cmap='viridis')
+            self.pm = ax.pcolormesh(x * 1e-3, z * 1e-3, phis, norm=norm, cmap='viridis')
             fig.subplots_adjust(right=0.8)
             pos = ax.get_position()
             self.cax = fig.add_axes([pos.x1 + .02, pos.y0, 0.02, pos.y1 - pos.y0])
             self.cbar = fig.colorbar(sm, cax=self.cax)
-            # Plot contour level
-            phisign = np.sign(philims[1])
-            zcontour = max(np.abs(philims)) / 10
-            ax.contour(x, y, phis, [zcontour * phisign])
         else:
             self.pm.set_array(phis)
             self.cbar.update_normal(sm)
@@ -270,6 +266,38 @@ class Simulation:
         if update and redraw:
             fig.canvas.draw()
         return fig
+    
+    def plot_config(self):
+        ''' Plot system configuration in the xz plane '''
+        # Get Z-grid
+        zstim = self.stim.pos[-1]  # um
+        zfiber = self.fiber.pos[-1]  # um
+        zbounds = sorted([zstim, zfiber])
+        zmid = np.mean(zbounds)
+        dz = 0.5 * np.ptp(zbounds)
+        zbounds = [zmid - 2 * dz, zmid + 2 * dz]
+        zgrid = np.linspace(*zbounds, 100)
+        # Get X-grid
+        xstim = self.stim.pos[0]  # um
+        xfiber = self.fiber.pos[0]  # um
+        xmid = (xstim + xfiber) / 2  # um
+        xbounds = np.array(zbounds) - np.mean(zbounds) + xmid  # um
+        xgrid = np.linspace(*xbounds, 100)
+        # Plot phi map
+        fig = self.plot_phi_map(xgrid, zgrid)
+        ax = fig.axes[0]
+        # Add marker for stim position
+        ax.scatter([self.stim.pos[0] * 1e-3], [self.stim.pos[-1] * 1e-3], label='electrode')
+        # Add markers for fiber nodes
+        xnodes = self.fiber.xnodes + self.fiber.pos[0] # um
+        xnodes = xnodes >= xbounds[0]
+        xnodes = xnodes <= xbounds[-1]
+        znodes = np.ones(xnodes.size) * zfiber  # um
+        ax.axhline(zfiber * 1e-3, c='w', lw=4, label='axon')
+        ax.scatter(xnodes * 1e-3, znodes * 1e-3, zorder=80, color='k', label='nodes')
+        ax.legend()
+        return fig
+
     
     def plot_vprofile(self, ax=None, update=False, redraw=False):
         '''
@@ -368,7 +396,8 @@ class Simulation:
             activatinvg function) on the map
         :return: figure handle
         '''
-        y = self.fiber.xnodes * 1e-3  # mm
+        y = np.arange(self.fiber.nnodes)
+        # y = self.fiber.xnodes * 1e-3  # mm
         if ax is None:
             fig, ax = plt.subplots(figsize=(np.ptp(tvec), np.ptp(y) / 50))
             ax.set_xlabel(TIME_MS)
@@ -381,7 +410,7 @@ class Simulation:
         sm = cm.ScalarMappable(norm=norm, cmap='viridis')
         if not update:
             # Plot map
-            ax.set_ylabel(AX_POS_MM)
+            ax.set_ylabel('# nodes')
             self.pm = ax.pcolormesh(tvec, y, vnodes, norm=norm, cmap='viridis')
             fig.subplots_adjust(right=0.8)
             pos = ax.get_position()
