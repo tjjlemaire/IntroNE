@@ -3,9 +3,8 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-23 13:06:54
+# @Last Modified time: 2022-02-23 13:20:14
 
-from xml.sax.handler import property_encoding
 from neuron import h
 import numpy as np
 import pandas as pd
