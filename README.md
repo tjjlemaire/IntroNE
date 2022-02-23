@@ -54,7 +54,7 @@ Notebook name: `tuto_spike_sorting.ipynb`
 ## Session 4 (2022.02.24) - tutorial on extracellular electrical stimulation.
 
 Notebook name: `tuto_extracellular_stim.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/6911248292fef1305a5da513df74d331ea9ca2c7?urlpath=lab%2Ftree%2Ftuto_extracellular_stim.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/5002b0c8e27b8d4f5e673d4f73bceca946455d37?urlpath=lab%2Ftree%2Ftuto_extracellular_stim.ipynb)
 
 ***Note***: for Windows users, you will to download and install a [NEURON](https://www.neuron.yale.edu/neuron/download) distribution in order to run this notebook on your machine.
 
