@@ -3,10 +3,9 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-22 11:55:55
+# @Last Modified time: 2022-02-23 11:29:03
 
-import os
-import platform
+from xml.sax.handler import property_encoding
 from neuron import h
 import numpy as np
 import pandas as pd
@@ -95,20 +94,74 @@ class MyelinatedFiber:
         :param nnodes: number of nodes (default: 101)
         :param pos: (x, z, z) position of the fiber central node (um)
         '''
-        # Assign input arguments as attributes
         self.diameter = diameter
         self.nnodes = nnodes
+        logger.info(f'created {self} model')
         self.pos = np.asarray(pos)
-        # Create model
+    
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.diameter:.1f}um, {self.nnodes} nodes)'
+
+    def construct(self):
+        ''' Construct model '''
         self.init_parameters()
         self.create_sections()
         self.build_topology()
         self.define_biophysics()
-        logger.info(f'created {self} model')
+    
+    def reinit(self):
+        ''' Reinitialize model ''' 
+        self.delete_sections()
+        self.construct()
+        logger.info(f're-initialized {self} model')
+    
+    def copy(self):
+        return self.__class__(
+            diameter=self.diameter,
+            nnodes=self.nnodes,
+            pos=self.pos
+        )
+    
+    @property
+    def diameter(self):
+        return self._diameter
 
-    def __repr__(self):
-        return f'{self.__class__.__name__}({self.diameter:.1f}um, {self.nnodes} nodes)'
+    @diameter.setter
+    def diameter(self, value):
+        if not hasattr(self, '_diameter'):
+            self.ref_diameter = value
+        self._diameter = value
+        if hasattr(self, '_nnodes'):
+            self.construct()
+    
+    @property
+    def nnodes(self):
+        return self._nnodes
 
+    @nnodes.setter
+    def nnodes(self, value):
+        if not hasattr(self, '_nnodes'):
+            self.ref_nnodes = value
+        self._nnodes = value
+        if hasattr(self, '_diameter'):
+            self.construct()
+    
+    @property
+    def pos(self):
+        return self._pos
+    
+    @pos.setter
+    def pos(self, value):
+        value = np.asarray(value)
+        if not hasattr(self, '_pos'):
+            self.ref_pos = value
+        self._pos = value
+    
+    def reset(self):
+        self.diameter = self.ref_diameter
+        self.nnodes = self.ref_nnodes
+        self.pos = self.ref_pos
+    
     def init_parameters(self):
         ''' Initialize model parameters. '''
         logger.debug('initializting model parameters...')
@@ -259,4 +312,11 @@ class MyelinatedFiber:
         df = pd.DataFrame(data=np.array(d), index=row_labels, columns=col_labels)
         df = df.astype({'nsec': 'int', 'nseg': 'int'})
         return df
+
+    def delete_sections(self):
+        ''' delete all model sections. '''
+        del self.node
+        del self.mysa
+        del self.flut
+        del self.stin
 

@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-18 15:25:03
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-22 11:54:56
+# @Last Modified time: 2022-02-23 11:38:24
 
 import numpy as np
 from logger import logger
@@ -21,8 +21,14 @@ class VolumeConductor:
         self.sigma = sigma
         logger.info(f'created {self}')
     
+    def copy(self):
+        return self.__class__(self.sigma)
+    
     def __repr__(self):
-        return f'{self.mtype().capitalize()}{self.__class__.__name__}(sigma={self.sigma}S/m)'
+        sigma_str = self.sigma
+        if self.is_isotropic():
+            sigma_str = sigma_str[0]
+        return f'{self.mtype().capitalize()}{self.__class__.__name__}(sigma={sigma_str}S/m)'
     
     def is_isotropic(self):
         ''' Check whether medium is isotropic '''
@@ -43,7 +49,13 @@ class VolumeConductor:
     def sigma(self, value):
         if isinstance(value, float):
             value = [value] * 3
-        self._sigma = np.asarray(value)
+        value = np.asarray(value)
+        if not hasattr(self, '_sigma'):
+            self.ref_sigma = value
+        self._sigma = value
+    
+    def reset(self):
+        self.sigma = self.ref_sigma
 
     def conductance(self, d):
         '''

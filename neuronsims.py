@@ -3,11 +3,9 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-22 16:48:42
+# @Last Modified time: 2022-02-23 11:58:47
 
-import logging
 import inspect
-from multiprocessing.sharedctypes import Value
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,7 +14,7 @@ from matplotlib import cm
 import seaborn as sns
 from neuron import h
 from IPython.display import display
-from ipywidgets import VBox, interactive_output
+from ipywidgets import FloatSlider, FloatLogSlider, VBox, interactive_output
 
 from constants import *
 from logger import logger
@@ -55,6 +53,19 @@ class Simulation:
           
         # Set internal objects
         self.internals = []
+    
+    def copy(self):
+        return self.__class__(
+            fiber=self.fiber.copy(),
+            medium=self.medium.copy(),
+            stim=self.stim.copy(),
+            tstop=self.tstop
+        )
+    
+    def reset(self):
+        self.fiber.reset()
+        self.medium.reset()
+        self.stim.reset()
     
     def get_expsyn(self, sec, tau=0.1, e=50.):
         ''' 
@@ -247,7 +258,6 @@ class Simulation:
             # Plot contour level
             phisign = np.sign(philims[1])
             zcontour = max(np.abs(philims)) / 10
-            # zcontour = np.power(10, np.floor(np.log10(zcontour)))
             ax.contour(x, y, phis, [zcontour * phisign])
         else:
             self.pm.set_array(phis)
@@ -328,7 +338,7 @@ class Simulation:
         '''
         # Get figure
         if fig is None:
-            fig, axes = plt.subplots(2, figsize=(6, 4), sharex=True)
+            fig, axes = plt.subplots(2, figsize=(8, 4), sharex=True)
             update = False
         else:
             axes = fig.axes
@@ -518,19 +528,58 @@ class Simulation:
         return fig
 
 
-def interactive_display(updatefunc, *sliders):
+def copy_slider(slider, **kwargs):
+    '''
+    Copy an ipywidgets slider object
+    
+    :param slider: reference slider
+    :param kwargs: attributes to be overwritten
+    :return: slider copy
+    '''
+    # Get slider copy
+    if isinstance(slider, FloatSlider):
+        s = FloatSlider(
+            description=slider.description,
+            min=slider.min, max=slider.max, value=slider.value, step=slider.step,
+            continuous_update=slider.continuous_update, layout=slider.layout)
+    elif isinstance(slider, FloatLogSlider):
+        s = FloatLogSlider(
+            description=slider.description,
+            base=slider.base, min=slider.min, max=slider.max, value=slider.value, step=slider.step,
+            continuous_update=slider.continuous_update, layout=slider.layout)
+    else:
+        raise ValueError(f'cannot copy {slider} object')
+    # Overwrite specified attributes
+    for k, v in kwargs.items():
+        setattr(s, k, v)
+    return s
+
+
+def interactive_display(sim, updatefunc, *refsliders):
     '''
     Start an interactive display
     
+    :param sim: simulation object
     :param updatefunc: update function that takes the slider values as input and creates/updates a figure
-    :param sliders: listr of slider objects
+    :param refsliders: list of reference slider objects
     :return: interactive display
     '''
+    # Check that number of input sliders corresponds to update function signature
     params = inspect.signature(updatefunc).parameters
-    sparams = [k for k, v in params.items() if v.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
-    assert len(sparams) == len(sliders), 'number of sliders does not match update signature'
+    sparams = [k for k, v in params.items() if v.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD][1:]
+    assert len(sparams) == len(refsliders), 'number of sliders does not match update signature'
+
+    # Reset simulation object
+    sim.reset()
+
+    # Create a copy of reference sliders for this interactive simulation
+    sliders = [copy_slider(rs) for rs in refsliders]
+    
+    # Call update once to generate initial figure
+    fig = updatefunc(sim, *[s.value for s in sliders])
+    # Define update wrapper for further figure updates
+    update = lambda *args, **kwargs: updatefunc(sim, *args, fig=fig, **kwargs)
+    # Create UI and render interactive display 
     ui = VBox(sliders)
-    fig = updatefunc(*[s.value for s in sliders])
-    update = lambda *args, **kwargs: updatefunc(*args, fig=fig, **kwargs)
     out = interactive_output(update, dict(zip(sparams, sliders)))
     return display(ui, out)

@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 12:22:04
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-22 11:48:25
+# @Last Modified time: 2022-02-23 11:41:04
 
 import numpy as np
 from logger import logger
@@ -23,6 +23,62 @@ class PulseTrain:
         self.npulses = npulses
         self.PRF = PRF
         self.tstart = tstart
+    
+    @property
+    def tpulse(self):
+        return self._tpulse
+    
+    @tpulse.setter
+    def tpulse(self, value):
+        if not hasattr(self, '_tpulse'):
+            self.ref_tpulse = value
+        self._tpulse = value
+
+    @property
+    def npulses(self):
+        return self._npulses
+    
+    @npulses.setter
+    def npulses(self, value):
+        if not hasattr(self, '_npulses'):
+            self.ref_npulses = value
+        self._npulses = value
+
+    @property
+    def PRF(self):
+        return self._PRF
+    
+    @PRF.setter
+    def PRF(self, value):
+        if self.npulses > 1 and value > 1 / self.tpulse:
+            raise ValueError('pulse repetition interval must be longer than pulse duration')
+        if not hasattr(self, '_PRF'):
+            self.ref_PRF = value
+        self._PRF = value
+
+    @property
+    def tstart(self):
+        return self._tstart
+    
+    @tstart.setter
+    def tstart(self, value):
+        if not hasattr(self, '_tstart'):
+            self.ref_tstart = value
+        self._tstart = value
+    
+    def reset(self):
+        self.tpulse = self.ref_tpulse 
+        self.npulses = self.ref_npulses
+        self.PRF = self.ref_PRF
+        self.tstart = self.ref_tstart
+
+    def copy(self):
+        return self.__class__(
+            tpulse=self.tpulse, 
+            npulses=self.npulses, 
+            PRF=self.PRF, 
+            tstart=self.tstart
+        )
 
     def inputs(self):
         l = [
@@ -36,16 +92,6 @@ class PulseTrain:
 
     def __repr__(self):
         return f'{self.__class__.__name__}({", ".join(self.inputs())})'
-
-    @property
-    def PRF(self):
-        return self._PRF
-
-    @PRF.setter
-    def PRF(self, value):
-        if self.npulses > 1 and value > 1 / self.tpulse:
-            raise ValueError('pulse repetition interval must be longer than pulse duration')
-        self._PRF = value
 
     @property
     def T_ON(self):
@@ -77,6 +123,41 @@ class CurrentPulseTrain(PulseTrain):
         self.I = I
         self.unit = unit
         super().__init__(**kwargs)
+
+    @property
+    def I(self):
+        return self._I
+    
+    @I.setter
+    def I(self, value):
+        if not hasattr(self, '_I'):
+            self.ref_I = value
+        self._I = value
+
+    @property
+    def unit(self):
+        return self._unit
+    
+    @unit.setter
+    def unit(self, value):
+        if not hasattr(self, '_unit'):
+            self.ref_unit = value
+        self._unit = value
+    
+    def reset(self):
+        super().reset()
+        self.I = self.ref_I
+        self.unit = self.ref_unit
+    
+    def copy(self):
+        return self.__class__(
+            I=self.I,
+            unit=self.unit,
+            tpulse=self.tpulse, 
+            npulses=self.npulses, 
+            PRF=self.PRF, 
+            tstart=self.tstart, 
+        )
 
     def inputs(self):
         return [f'I={self.I:.2f}{self.unit}'] + super().inputs()   
@@ -119,8 +200,32 @@ class ExtracellularCurrentPulseTrain(CurrentPulseTrain):
 
             :param pos: electrode (x, y, z) position (um) 
         '''
-        self.pos = np.asarray(pos)
+        self.pos = pos
         super().__init__(unit=unit, **kwargs)
         logger.info(f'created {self}')
 
+    @property
+    def pos(self):
+        return self._pos
+    
+    @pos.setter
+    def pos(self, value):
+        value = np.asarray(value)
+        if not hasattr(self, '_pos'):
+            self.ref_pos = value
+        self._pos = value
+    
+    def reset(self):
+        super().reset()
+        self.pos = self.ref_pos
 
+    def copy(self):
+        return self.__class__(
+            pos=self.pos, 
+            I=self.I,
+            unit=self.unit,
+            tpulse=self.tpulse, 
+            npulses=self.npulses, 
+            PRF=self.PRF, 
+            tstart=self.tstart, 
+        )
