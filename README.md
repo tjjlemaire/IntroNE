@@ -51,6 +51,10 @@ Notebook name: `tuto_spike_sorting.ipynb`
 
 **Note: This tutorial uses a significant amount of RAM, hence execution in the Binder environment will be ridiculously slow. It is therefore highly advised to execute the notebook locally.**
 
+## Session 4 (2022.02.24) - tutorial on extracellular electrical stimulation.
+
+Notebook name: `tuto_extracellular_stim.ipynb`
+
 ## Questions
 
 For any questions, you can contact me by email: theo.lemaire@nyulangone.org

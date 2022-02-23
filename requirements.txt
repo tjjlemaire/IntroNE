@@ -9,3 +9,4 @@ ipywidgets
 jupyterlab
 ipympl
 sklearn
+neuron
