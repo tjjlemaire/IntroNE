@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-23 12:57:03
+# @Last Modified time: 2022-02-23 13:11:50
 
 import inspect
 import time
@@ -25,12 +25,12 @@ class Simulation:
     Interface to run NEURON simulations.
     '''
 
-    def __init__(self, fiber, medium, stim, tstop=None):
+    def __init__(self, axon, medium, stim, tstop=None):
         '''
         Object initialization.
         
         :param medium: 
-        :param fiber: fiber model object
+        :param axon: axon model object
         :param medium: extracellular medium (volume conductor) object
         :param stim: simulus object
         :param tstop (optional): total simulation time
@@ -40,7 +40,7 @@ class Simulation:
         h.dt = 0.01  # time step (ms)
 
         # Assign input arguments as class attributes
-        self.fiber = fiber
+        self.axon = axon
         self.stim = stim
         self.medium = medium
         if tstop is None:
@@ -49,21 +49,21 @@ class Simulation:
 
         # Compute extracellular field per unit extracellular current (if external stimulus) 
         if hasattr(stim, 'pos'):
-            self.rel_phis = self.get_phi(self.fiber.xsections)
+            self.rel_phis = self.get_phi(self.axon.xsections)
           
         # Set internal objects
         self.internals = []
     
     def copy(self):
         return self.__class__(
-            fiber=self.fiber.copy(),
+            axon=self.axon.copy(),
             medium=self.medium.copy(),
             stim=self.stim.copy(),
             tstop=self.tstop
         )
     
     def reset(self):
-        self.fiber.reset()
+        self.axon.reset()
         self.medium.reset()
         self.stim.reset()
     
@@ -114,7 +114,7 @@ class Simulation:
 
     def add_presynaptic_input(self, **kwargs):
         '''
-        Add a pre-synaptic input on the first fiber node ot induce "physiological" spiking
+        Add a pre-synaptic input on the first axon node ot induce "physiological" spiking
         at a specific frequency. This is done by:
         - creating a Synapse object on the node of interest
         - creating a NetStim object representing the presynaptic input
@@ -124,7 +124,7 @@ class Simulation:
         :param kwargs: keyword arguments for NetStim creation
         '''
         ns = self.get_netstim(**kwargs)
-        syn = self.get_expsyn(self.fiber.node[0])
+        syn = self.get_expsyn(self.axon.node[0])
         nc = self.connect_netstim_to_synapse(ns, syn)
         self.internals.append((ns, syn, nc))
 
@@ -133,7 +133,7 @@ class Simulation:
         Compute the extracellular potential at a particular section axial coordinate
         for a specific current amplitude
 
-        :param x: axial position of the section on the fiber (um)
+        :param x: axial position of the section on the axon (um)
         :param I: current amplitude
         :return: extracellular membrane voltage (mV)
         '''
@@ -152,7 +152,7 @@ class Simulation:
         # If scalar provided, assume it is the axial coordinate and fill the rest with zeros
         else:
             x = np.array((x, 0., 0.))
-        d = self.fiber.pos + x - self.stim.pos  # (um, um, um)
+        d = self.axon.pos + x - self.stim.pos  # (um, um, um)
         return self.medium.phi(I, d)
     
     def get_phi_map(self, x, y):
@@ -179,10 +179,10 @@ class Simulation:
 
     def update_field(self, I):
         ''' 
-        Update the extracellular potential value of each fiber section for a specific
+        Update the extracellular potential value of each axon section for a specific
         stimulation current. '''
         logger.debug(f't = {h.t:.2f} ms, setting I = {I} {self.stim.unit}')
-        for sec, rel_phi in zip(self.fiber.sections, self.rel_phis):
+        for sec, rel_phi in zip(self.axon.sections, self.rel_phis):
             sec.e_extracellular = I * rel_phi
 
     def get_update_field_callable(self, value):
@@ -191,12 +191,12 @@ class Simulation:
 
     def run(self):
         ''' Run the simulation. '''
-        logger.info(f'simulating {self.fiber} stimulation by {self.stim}...')
+        logger.info(f'simulating {self.axon} stimulation by {self.stim}...')
         tstart = time.perf_counter()
         # Set probes
         tprobe = h.Vector().record(h._ref_t)
-        vprobes = [h.Vector().record(self.fiber.node[j](0.5)._ref_v)
-                   for j in range(self.fiber.nnodes)]
+        vprobes = [h.Vector().record(self.axon.node[j](0.5)._ref_v)
+                   for j in range(self.axon.nnodes)]
         # Set field
         h.t = 0.
         self.update_field(0.)
@@ -205,7 +205,7 @@ class Simulation:
         self.cvode.active(0)
         logger.debug(f'fixed time step integration (dt = {h.dt} ms)')
         # Initialize
-        h.finitialize(self.fiber.vrest)
+        h.finitialize(self.axon.vrest)
         # Set modulation events
         events = self.stim.stim_events()
         for t, I in events:
@@ -271,16 +271,16 @@ class Simulation:
         ''' Plot system configuration in the xz plane '''
         # Get Z-grid
         zstim = self.stim.pos[-1]  # um
-        zfiber = self.fiber.pos[-1]  # um
-        zbounds = sorted([zstim, zfiber])
+        zaxon = self.axon.pos[-1]  # um
+        zbounds = sorted([zstim, zaxon])
         zmid = np.mean(zbounds)
         dz = 0.5 * np.ptp(zbounds)
         zbounds = [zmid - 2 * dz, zmid + 2 * dz]
         zgrid = np.linspace(*zbounds, 100)
         # Get X-grid
         xstim = self.stim.pos[0]  # um
-        xfiber = self.fiber.pos[0]  # um
-        xmid = (xstim + xfiber) / 2  # um
+        xaxon = self.axon.pos[0]  # um
+        xmid = (xstim + xaxon) / 2  # um
         xbounds = np.array(zbounds) - np.mean(zbounds) + xmid  # um
         xgrid = np.linspace(*xbounds, 100)
         # Plot phi map
@@ -288,20 +288,19 @@ class Simulation:
         ax = fig.axes[0]
         # Add marker for stim position
         ax.scatter([self.stim.pos[0] * 1e-3], [self.stim.pos[-1] * 1e-3], label='electrode')
-        # Add markers for fiber nodes
-        xnodes = self.fiber.xnodes + self.fiber.pos[0] # um
+        # Add markers for axon nodes
+        xnodes = self.axon.xnodes + self.axon.pos[0] # um
         xnodes = xnodes >= xbounds[0]
         xnodes = xnodes <= xbounds[-1]
-        znodes = np.ones(xnodes.size) * zfiber  # um
-        ax.axhline(zfiber * 1e-3, c='w', lw=4, label='axon')
+        znodes = np.ones(xnodes.size) * zaxon  # um
+        ax.axhline(zaxon * 1e-3, c='w', lw=4, label='axon')
         ax.scatter(xnodes * 1e-3, znodes * 1e-3, zorder=80, color='k', label='nodes')
         ax.legend()
         return fig
 
-    
     def plot_vprofile(self, ax=None, update=False, redraw=False):
         '''
-        Plot the spatial distribution of the extracellular potential along the fiber
+        Plot the spatial distribution of the extracellular potential along the axon
         
         :param ax (optional): axis on which to plot
         :return: figure handle
@@ -312,7 +311,7 @@ class Simulation:
             sns.despine(ax=ax)
         else:
             fig = ax.get_figure()
-        xnodes = self.fiber.xnodes  # um
+        xnodes = self.axon.xnodes  # um
         phinodes = self.get_phi(xnodes, I=self.stim.I) # mV
         if update:
             line = ax.get_lines()[0]
@@ -321,7 +320,7 @@ class Simulation:
             ax.relim()
             ax.autoscale_view()
         else:
-            ax.set_title('potential distribution along fiber')
+            ax.set_title('potential distribution along axon')
             ax.set_ylabel('φ (mV)')
             ax.plot(xnodes * 1e-3, phinodes)
         if update and redraw:
@@ -330,7 +329,7 @@ class Simulation:
     
     def plot_activating_function(self, ax=None, update=False, redraw=False):
         '''
-        Plot the spatial distribution of the activating function along the fiber
+        Plot the spatial distribution of the activating function along the axon
         
         :param ax (optional): axis on which to plot
         :return: figure handle
@@ -341,7 +340,7 @@ class Simulation:
             sns.despine(ax=ax)
         else:
             fig = ax.get_figure()
-        xnodes = self.fiber.xnodes  # um
+        xnodes = self.axon.xnodes  # um
         phinodes = self.get_phi(xnodes, I=self.stim.I)  # mV
         d2phidx2 = self.get_activating_function(xnodes * 1e-3, phinodes)  # mV2/mm2
         if update:
@@ -351,7 +350,7 @@ class Simulation:
             ax.relim()
             ax.autoscale_view()
         else:
-            ax.set_title('activating function along fiber')
+            ax.set_title('activating function along axon')
             ax.set_ylabel('d2φ/dx2 (mV2/mm2)')
             ax.plot(xnodes * 1e-3, d2phidx2)
         if update and redraw:
@@ -360,7 +359,7 @@ class Simulation:
     
     def plot_profiles(self, fig=None):
         '''
-        Plot profiles of extracellular potential and activating function along the fiber
+        Plot profiles of extracellular potential and activating function along the axon
         
         :return: figure handle
         '''
@@ -396,8 +395,7 @@ class Simulation:
             activatinvg function) on the map
         :return: figure handle
         '''
-        y = np.arange(self.fiber.nnodes)
-        # y = self.fiber.xnodes * 1e-3  # mm
+        y = np.arange(self.axon.nnodes)
         if ax is None:
             fig, ax = plt.subplots(figsize=(np.ptp(tvec), np.ptp(y) / 50))
             ax.set_xlabel(TIME_MS)
@@ -425,7 +423,7 @@ class Simulation:
             self.cbar.set_label(V_MV, labelpad=-15)
         if add_rec_locations:
             # Compute activating function profile
-            xnodes = self.fiber.xnodes  # um
+            xnodes = self.axon.xnodes  # um
             phinodes = self.get_phi(xnodes, I=self.stim.I)  # mV
             d2phidx2 = self.get_activating_function(xnodes * 1e-3, phinodes)  # mV2/mm2 
             # Infer recruitment location(s) from maximum point(s) of activating function

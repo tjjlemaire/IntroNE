@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-23 11:29:03
+# @Last Modified time: 2022-02-23 13:06:54
 
 from xml.sax.handler import property_encoding
 from neuron import h
@@ -49,10 +49,10 @@ def periaxonal_resistance_per_unit_length(rho, d, w):
     return axial_resistance_per_unit_length(rho, d + 2 * w, d_in=d)
 
 
-class MyelinatedFiber:
+class MyelinatedAxon:
     '''
     Generic double-cable, myelinated axon model based on McIntyre 2002, extended
-    to allow use with any fiber diameter.
+    to allow use with any axon diameter.
 
     Reference:
     *McIntyre, C.C., Richardson, A.G., and Grill, W.M. (2002). Modeling the
@@ -76,9 +76,8 @@ class MyelinatedFiber:
     vrest = -80.                   # resting membrane potential (mV)
 
     # Lookup table for diameter-dependent model parameters
-    fiberD_ref = np.array([5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0])  # um
-    fiberD_deps = {
-        'fiberD': np.array([5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]),  # um
+    axonD_ref = np.array([5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0])  # um
+    axonD_deps = {
         'nodeD': np.array([1.9, 2.4, 2.8, 3.3, 3.7, 4.2, 4.7, 5.0, 5.5]),  # um
         'interD': np.array([3.4, 4.6, 5.8, 6.9, 8.1, 9.2, 10.4, 11.5, 12.7]),  # um
         'interL': np.array([500., 750., 1000., 1150., 1250., 1350., 1400., 1450., 1500.]),  # um
@@ -90,9 +89,9 @@ class MyelinatedFiber:
         '''
         Model initialization.
 
-        :param diam: fiber diameter (um)
+        :param diam: axon outer diameter (um)
         :param nnodes: number of nodes (default: 101)
-        :param pos: (x, z, z) position of the fiber central node (um)
+        :param pos: (x, z, z) position of the axon central node (um)
         '''
         self.diameter = diameter
         self.nnodes = nnodes
@@ -165,9 +164,9 @@ class MyelinatedFiber:
     def init_parameters(self):
         ''' Initialize model parameters. '''
         logger.debug('initializting model parameters...')
-        # Interpolate diameter-dependent parameters at current fiber diameter
-        for k, v in self.fiberD_deps.items():
-            setattr(self, k, interp1d(self.fiberD_ref, v, kind='linear', assume_sorted=True, fill_value='extrapolate')(self.diameter))
+        # Interpolate diameter-dependent parameters at current axon diameter
+        for k, v in self.axonD_deps.items():
+            setattr(self, k, interp1d(self.axonD_ref, v, kind='linear', assume_sorted=True, fill_value='extrapolate')(self.diameter))
         
         # Topological & geometrical parameters 
         self.ninters = self.nnodes - 1  # Number of internodes
@@ -179,7 +178,7 @@ class MyelinatedFiber:
         self.stinD = self.interD  # Diameter of internodal (STIN) sections (um)
         self.stinL = (self.interL - (self.nodeL + 2 * (self.mysaL + self.flutL))) / self.nstin_per_inter  # Length of internodal sections (um)
         self.node2node = self.nodeL + 2 * (self.mysaL + self.flutL) + self.nstin_per_inter * self.stinL  # node-to-node distance (um)
-        self.length = (self.nnodes - 1) * self.node2node + self.nodeL  # fiber length (um)
+        self.length = (self.nnodes - 1) * self.node2node + self.nodeL  # axon length (um)
 
         # Intracellular resistances 
         self.R_node = axial_resistance(self.rhoa, self.nodeL, self.nodeD)  # Node intracellular axial resistance (Ohm)
