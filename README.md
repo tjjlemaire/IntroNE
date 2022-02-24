@@ -1,6 +1,8 @@
 # IntroNE
 
-Code material for the interactive "recitations" of the NYU course "Introduction to Neural Engineering"
+Code material for the interactive recitations of the NYU course ***Introduction to Neural Engineering***.
+
+These recitations are based on Jupyter notebooks that can be either run locally on your laptop, or executed in an online [Binder](https://mybinder.org) environment.
 
 ## Local use
 
@@ -8,16 +10,15 @@ Code material for the interactive "recitations" of the NYU course "Introduction 
 
 - Download and install a Python distribution from https://www.anaconda.com/download/ using the Anaconda installer
 - Open the Anaconda prompt
-- Clone this repository: `git clone https://github.com/tjjlemaire/IntroNE.git`. To do this you will need to have Git installed on your computer (you can download it from https://git-scm.com/downloads). Alternatively, you can download the code archive and unzip it.
-- Move to the code folder: `cd IntroNE`
+- Clone this repository: `git clone https://github.com/tjjlemaire/IntroNE.git`. To do this you will need to have [Git](https://git-scm.com/downloads) installed on your computer. Alternatively, you can download the repo archive and unzip it (although the Git way is highly advised).
+- Move to the repo folder: `cd IntroNE`
 - Create a new anaconda environment: `conda create -n introne python=3.8`
 - Activate the anaconda environment `conda activate introne`
 - Install the code dependencies: `pip install -r requirements.txt`
 - You're all set!
 
-### Running a notebook
+### Notebook execution
 
-To execute a notebook locally:
 - Open an anaconda prompt
 - Activate the anaconda environment: `conda activate introne`
 - Move to this repository
@@ -30,7 +31,7 @@ To execute a notebook locally:
 
 ## Online use
 
-You can you Binder to access and run the notebooks online without a local installation.
+You can use *Binder* to access and run the notebooks online without a local installation:
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE.git/HEAD)
 
@@ -60,4 +61,4 @@ Notebook name: `tuto_extracellular_stim.ipynb`
 
 ## Questions
 
-For any questions, you can contact me by email: theo.lemaire@nyulangone.org
+For any questions, you can contact me by email: *theo.lemaire@nyulangone.org*
