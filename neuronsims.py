@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-23 13:11:50
+# @Last Modified time: 2022-03-07 11:22:54
 
 import inspect
 import time
@@ -15,6 +15,7 @@ import seaborn as sns
 from neuron import h
 from IPython.display import display
 from ipywidgets import FloatSlider, FloatLogSlider, VBox, interactive_output
+from scipy.signal import find_peaks
 
 from constants import *
 from logger import logger
@@ -25,7 +26,7 @@ class Simulation:
     Interface to run NEURON simulations.
     '''
 
-    def __init__(self, axon, medium, stim, tstop=None):
+    def __init__(self, axon, medium, stim):
         '''
         Object initialization.
         
@@ -33,7 +34,6 @@ class Simulation:
         :param axon: axon model object
         :param medium: extracellular medium (volume conductor) object
         :param stim: simulus object
-        :param tstop (optional): total simulation time
         '''
         # Set global simulation parameters
         h.celsius = 36.  # temperature (Celsius)
@@ -43,9 +43,6 @@ class Simulation:
         self.axon = axon
         self.stim = stim
         self.medium = medium
-        if tstop is None:
-            tstop = 1.5 * self.stim.stim_events()[-1][0]
-        self.tstop = tstop  # ms
 
         # Compute extracellular field per unit extracellular current (if external stimulus) 
         if hasattr(stim, 'pos'):
@@ -128,7 +125,7 @@ class Simulation:
         nc = self.connect_netstim_to_synapse(ns, syn)
         self.internals.append((ns, syn, nc))
 
-    def get_phi(self, x, I=1.):
+    def get_phi(self, x, I=1., relaxon=True):
         ''' 
         Compute the extracellular potential at a particular section axial coordinate
         for a specific current amplitude
@@ -152,25 +149,27 @@ class Simulation:
         # If scalar provided, assume it is the axial coordinate and fill the rest with zeros
         else:
             x = np.array((x, 0., 0.))
-        d = self.axon.pos + x - self.stim.pos  # (um, um, um)
+        d = x - self.stim.pos  # (um, um, um)
+        if relaxon:
+            d += self.axon.pos
         return self.medium.phi(I, d)
     
-    def get_phi_map(self, x, y):
+    def get_phi_map(self, x, z):
         '''
-        Compute extracellular potential map over a grid of x and y coordinates
+        Compute extracellular potential map over a grid of x and z coordinates
 
-        :param x: vector of x (axial) coordinates (um)
-        :param y: vector of y (transverse) coordinates (um)
-        :return: 2D (nx, ny) array of extracellular potential values (mV)  
+        :param x: vector of relative x (axial) coordinates w.r.t. the electrode (um)
+        :param z: vector of relative z (transverse) coordinates w.r.t. the electrode (um)
+        :return: 2D (nx, nz) array of extracellular potential values (mV)  
         '''
         # Construct 3D meshgrid from x and y vectors (adding a zero z vector)
-        X, Y, Z = np.meshgrid(x, y, [0])
+        Y, Z, X = np.meshgrid([0], z, x)  # y, z, x order to get appropriate refinement
         # Flatten meshgrid onto coordinates array
         coords = np.vstack((X.ravel(), Y.ravel(), Z.ravel())).T
         # Compute extracellular potential value for each coordinate
-        phis = self.get_phi(coords)
+        phis = self.get_phi(coords, relaxon=False)
         # Reshape result to initial 2D field
-        return np.reshape(phis, (x.size, y.size))
+        return np.reshape(phis, (x.size, z.size))
     
     def get_activating_function(self, x, phi):
         ''' Compute activating function from a distribution of positions and voltages '''
@@ -189,9 +188,19 @@ class Simulation:
         ''' Get callable to update_field with a preset current amplitude '''
         return lambda: self.update_field(value)
 
-    def run(self):
-        ''' Run the simulation. '''
-        logger.info(f'simulating {self.axon} stimulation by {self.stim}...')
+    def run(self, verbose=True):
+        '''
+        Run the simulation.
+        
+        :param verbose: whether to print out details of the simulation
+        :return: (tvec, vnodes) tuple:
+            - tvec is a 1D (nsamples) time vector of the simulation (in ms)
+            - vnodes is a 2D (nnodes x nsamples) array of voltage values for each axon node over time (in mV)
+        '''
+        self.rel_phis = self.get_phi(self.axon.xsections)
+        self.tstop = max(10., 1.5 * self.stim.stim_events()[-1][0])
+        if verbose:
+            logger.info(f'simulating {self.axon} stimulation by {self.stim}...')
         tstart = time.perf_counter()
         # Set probes
         tprobe = h.Vector().record(h._ref_t)
@@ -220,12 +229,12 @@ class Simulation:
         logger.debug(f'simulation completed in {tend - tstart:.2f} s')
         return tvec, vnodes
 
-    def plot_phi_map(self, x, z, ax=None, update=False, redraw=True, scale='log'):
+    def plot_phi_map(self, x, z, ax=None, update=False, redraw=True, scale='log', contour=False):
         '''
         Plot 2D colormap of extracellular potential across a 2D space
         
-        :param x: vector of x (axial) coordinates (um)
-        :param z: vector of z (transverse) coordinates (um)
+        :param x: vector of absolute x (axial) coordinates (um)
+        :param z: vector of absolute z (transverse) coordinates (um)
         :param ax (optional): axis on which to plot
         :param update: whether to update an existing figure or not
         :param redraw: whether to redraw figure upon update
@@ -238,9 +247,10 @@ class Simulation:
         else:
             fig = ax.get_figure()
         # Compute 2D field of values
-        phis = self.get_phi_map(x - self.stim.pos[0], z - self.stim.pos[-1])
+        phis = self.get_phi_map(x, z)
+        phi_ub = np.percentile(phis, 99)
         # Get normalizer and scalar mapable
-        philims = (phis.min(), phis.max())
+        philims = (phis.min(), phi_ub)
         if scale == 'lin':
             norm = plt.Normalize(*philims)
         else:
@@ -251,10 +261,13 @@ class Simulation:
             ax.set_xlabel(AX_POS_MM)
             ax.set_ylabel('transverse position (mm)')
             self.pm = ax.pcolormesh(x * 1e-3, z * 1e-3, phis, norm=norm, cmap='viridis')
+            ax.set_aspect(1.)
             fig.subplots_adjust(right=0.8)
             pos = ax.get_position()
             self.cax = fig.add_axes([pos.x1 + .02, pos.y0, 0.02, pos.y1 - pos.y0])
             self.cbar = fig.colorbar(sm, cax=self.cax)
+            if contour:
+                ax.contour(x * 1e-3, z * 1e-3, phis, levels=[phi_ub / 2], colors='w')
         else:
             self.pm.set_array(phis)
             self.cbar.update_normal(sm)
@@ -267,33 +280,32 @@ class Simulation:
             fig.canvas.draw()
         return fig
     
-    def plot_config(self):
+    def plot_config(self, nperax=100, zoomout=2., contour=True, **kwargs):
         ''' Plot system configuration in the xz plane '''
-        # Get Z-grid
-        zstim = self.stim.pos[-1]  # um
-        zaxon = self.axon.pos[-1]  # um
-        zbounds = sorted([zstim, zaxon])
-        zmid = np.mean(zbounds)
-        dz = 0.5 * np.ptp(zbounds)
-        zbounds = [zmid - 2 * dz, zmid + 2 * dz]
-        zgrid = np.linspace(*zbounds, 100)
-        # Get X-grid
-        xstim = self.stim.pos[0]  # um
-        xaxon = self.axon.pos[0]  # um
-        xmid = (xstim + xaxon) / 2  # um
+        # Get Z-bounds of XZ plane of interest
+        zstim = self.stim.pos[-1]  # z-electrode (um)
+        zaxon = self.axon.pos[-1]  # z-axon (um)
+        zbounds = sorted([zstim, zaxon])  # sorted z coordinates
+        zmid = np.mean(zbounds)  # mid-z coordinate
+        dz = np.ptp(zbounds)  # z-span between electrode and axon
+        zbounds = [zmid - zoomout * dz, zmid + zoomout * dz]  # z-bounds: twice z-span, centered around mid-z 
+        # Get X-bounds of XZ plane of interest
+        xstim = self.stim.pos[0]  # x-electrode (um)
+        xaxon = self.axon.pos[0]  # x-axon (um)
+        xmid = (xstim + xaxon) / 2  # mid-x coordinate (um)
         xbounds = np.array(zbounds) - np.mean(zbounds) + xmid  # um
-        xgrid = np.linspace(*xbounds, 100)
-        # Plot phi map
-        fig = self.plot_phi_map(xgrid, zgrid)
+        # Compute and plot phi map over 100-by-100 grid spanning the XZ plane
+        zgrid = np.linspace(*zbounds, nperax)
+        xgrid = np.linspace(*xbounds, nperax)
+        fig = self.plot_phi_map(xgrid, zgrid, contour=contour, **kwargs)
         ax = fig.axes[0]
         # Add marker for stim position
-        ax.scatter([self.stim.pos[0] * 1e-3], [self.stim.pos[-1] * 1e-3], label='electrode')
+        ax.scatter([xstim * 1e-3], [zstim * 1e-3], label='electrode')
         # Add markers for axon nodes
         xnodes = self.axon.xnodes + self.axon.pos[0] # um
-        xnodes = xnodes >= xbounds[0]
-        xnodes = xnodes <= xbounds[-1]
+        xnodes = xnodes[np.logical_and(xnodes >= xbounds[0], xnodes <= xbounds[-1])]
         znodes = np.ones(xnodes.size) * zaxon  # um
-        ax.axhline(zaxon * 1e-3, c='w', lw=4, label='axon')
+        ax.axhline(zaxon * 1e-3, c='silver', lw=4, label='axon axis')
         ax.scatter(xnodes * 1e-3, znodes * 1e-3, zorder=80, color='k', label='nodes')
         ax.legend()
         return fig
@@ -444,7 +456,7 @@ class Simulation:
             fig.canvas.draw()
         return fig
 
-    def plot_vtraces(self, tvec, vnodes, ax=None, inodes=None, update=False, redraw=True):
+    def plot_vtraces(self, tvec, vnodes, ax=None, inodes=None, update=False, redraw=True, mark_spikes=False):
         '''
         Plot membrane potential traces at specific nodes
 
@@ -475,6 +487,10 @@ class Simulation:
         else:
             for label, vtrace in vtraces.items():
                 ax.plot(tvec, vtrace, label=label)
+                if mark_spikes:
+                    ispikes = self.detect_spikes(tvec, vtrace)
+                    if len(ispikes) > 0:
+                        ax.scatter(tvec[ispikes], vtrace[ispikes] + 10, marker='v')
             ax.legend(loc=9, bbox_to_anchor=(0.95, 0.9))
             ax.set_ylabel(V_MV)
             ax.set_xlim([tvec[0], tvec[-1]])
@@ -519,7 +535,7 @@ class Simulation:
             fig.canvas.draw()
         return fig
 
-    def plot_results(self, tvec, vnodes, inodes=None, fig=None):
+    def plot_results(self, tvec, vnodes, inodes=None, fig=None, mark_spikes=False):
         ''' 
         Plot simulation results.
 
@@ -528,7 +544,6 @@ class Simulation:
         :param ax (optional): axis on which to plot
         :param inodes (optional): specific node indexes
         :param fig (optional): existing figure to use for rendering 
-        :param update: whether to update an existing figure or not
         :return: figure handle
         '''
         # Get figure
@@ -540,7 +555,7 @@ class Simulation:
             update = True
         # Plot results   
         self.plot_vmap(tvec, vnodes, ax=axes[0], update=update, redraw=False)
-        self.plot_vtraces(tvec, vnodes, ax=axes[1], inodes=inodes, update=update, redraw=False)
+        self.plot_vtraces(tvec, vnodes, ax=axes[1], inodes=inodes, update=update, redraw=False, mark_spikes=mark_spikes)
         self.plot_Itrace(ax=axes[2], update=update, redraw=False)        
         # Adjust axes and figure
         if not update:
@@ -553,6 +568,26 @@ class Simulation:
             fig.canvas.draw()
         # Return figure
         return fig
+
+    def detect_spikes(self, t, v):
+        '''
+        Detect spikes in simulation output data.
+
+        :param t: time vector
+        :param v: 1D or 2D membrane potential array
+        :return: indexes of detected spikes
+
+        Example use:
+        ispikes = sim.detect_spikes(tvec, vnodes)
+        '''
+        if v.ndim > 2: 
+            raise ValueError('cannot work with potential arrays of more than 2 dimensions')
+        if v.ndim == 2:
+            ispikes = [self.detect_spikes(t, vv) for vv in v]
+            if all(len(i) == len(ispikes[0]) for i in ispikes):
+                ispikes = np.array(ispikes)
+            return ispikes
+        return find_peaks(v, height=0., prominence=50.)[0]
 
 
 def copy_slider(slider, **kwargs):

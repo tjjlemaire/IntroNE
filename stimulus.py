@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 12:22:04
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-23 11:41:04
+# @Last Modified time: 2022-03-04 17:39:44
 
 import numpy as np
 from logger import logger
@@ -214,6 +214,10 @@ class ExtracellularCurrentPulseTrain(CurrentPulseTrain):
         if not hasattr(self, '_pos'):
             self.ref_pos = value
         self._pos = value
+    
+    def inputs(self):
+        s = ', '.join([f'{x:.0f}' for x in self.pos])
+        return [f'pos=[{s}]um'] + super().inputs()
     
     def reset(self):
         super().reset()

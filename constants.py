@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 10:39:57
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-18 16:04:58
+# @Last Modified time: 2022-03-07 11:09:18
 
 # Model conversion constants
 
@@ -13,6 +13,7 @@ MV_TO_UV = 1e3
 V_TO_MV = 1e3
 UA_TO_NA = 1e3
 OHM_TO_MOHM = 1e-6
+M_TO_CM = 1e2
 
 # Simulations
 DT = 0.05  # simulation time step (ms)

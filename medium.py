@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-18 15:25:03
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-23 11:38:24
+# @Last Modified time: 2022-03-07 11:13:37
 
 import numpy as np
 from logger import logger
@@ -25,9 +25,10 @@ class VolumeConductor:
         return self.__class__(self.sigma)
     
     def __repr__(self):
-        sigma_str = self.sigma
+        sigma_str = [f'{x:.3f}' for x in self.sigma]
         if self.is_isotropic():
-            sigma_str = sigma_str[0]
+            sigma_str = [sigma_str[0]]
+        sigma_str = f'[{", ".join(sigma_str)}]'
         return f'{self.mtype().capitalize()}{self.__class__.__name__}(sigma={sigma_str}S/m)'
     
     def is_isotropic(self):
@@ -80,7 +81,7 @@ class VolumeConductor:
         a point-current source in an isotropic volume conductor model.
 
         :param I: current amplitude (uA)
-        :param r: distance (um)
+        :param d: (x, y, z) coordinates (um)
         :return: extracellular potential (mV)
         '''
         return I / self.conductance(d) * V_TO_MV  # mV

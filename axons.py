@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-23 13:20:14
+# @Last Modified time: 2022-03-07 10:15:50
 
 from neuron import h
 import numpy as np
@@ -92,13 +92,14 @@ class MyelinatedAxon:
         :param nnodes: number of nodes (default: 101)
         :param pos: (x, z, z) position of the axon central node (um)
         '''
+        self.pos = np.asarray(pos)
         self.diameter = diameter
         self.nnodes = nnodes
         logger.info(f'created {self} model')
-        self.pos = np.asarray(pos)
     
     def __repr__(self):
-        return f'{self.__class__.__name__}({self.diameter:.1f}um, {self.nnodes} nodes)'
+        s = ', '.join([f'{x:.0f}' for x in self.pos])    
+        return f'{self.__class__.__name__}(pos=[{s}]um, d={self.diameter:.1f}um, {self.nnodes} nodes, L={self.length * 1e-3:.1f}mm)'
 
     def construct(self):
         ''' Construct model '''

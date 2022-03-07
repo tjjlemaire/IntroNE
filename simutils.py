@@ -2,9 +2,8 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-02 15:58:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-11 14:40:51
+# @Last Modified time: 2022-03-07 11:20:59
 
-from email.mime import base
 import logging
 import numpy as np
 from IPython.display import display
@@ -113,3 +112,54 @@ def interactive_extracellular_2neurons(data, phi_func, baseline=None, rmin=10., 
     
     out = interactive_output(update, {'r1': r1, 'r2': r2, 'dt': dt})
     return display(ui, out)
+
+
+def binary_search(feval, lb, ub, rtol=0.05, atol=1e9, max_nevals=30, ndowns=0, nups=0):
+    '''
+    Perform a binary search for an evaluatiomn threshold within a defined interval.
+
+    This search is performed as a recursive algorithm, where the search interval is
+    progressively refined based on the results of the evaluated function at its mid-point,
+    until a convergence criterion is met.
+    
+    :param feval: evaluation function returning either True or False
+    :param lb: lower bound of the search interval
+    :param ub: upper bound of the search interval
+    :param rtol: relative tolerance w.r.t threshold convergence
+    :param atol: relative tolerance w.r.t threshold convergence
+    :param max_nevals: maximum number of iterations at which point the recursive algorithm stops
+        regardless of convergence status
+    :param ndowns: number of times the interval has been refined as lower half interval
+    :param nups: number of times the interval has been refined as upper half interval 
+    :return: threshold value upon convergence of the algorithm
+
+    Example use:
+    thr = binary_search(check_at_current, lower_bound, upper_bound)
+    '''
+    # Avoid zero values in interval lower bound
+    if lb == 0.:
+        lb = 1e-6
+    # If stop criterion is met
+    if (ub - lb) < min(atol, lb * rtol) or (nups + ndowns) > max_nevals:
+        # If interval has been continously refined towards an edge, return NaN
+        if ndowns == 0 or nups == 0:
+            logger.error(f'no "{feval.__name__}" threshold found within specified interval')
+            return np.nan
+        # Othwerwise, return upper bound
+        return ub
+    # Determine function evaluation point
+    if ub / lb < 2:
+        # If interval bounds differ by less than a factor 2, take interval mid-point
+        xmid = (lb + ub) / 2
+    else:
+        # Otherwise, take mid power-of-10 of interval bounds
+        xmid = np.power(10., np.log10([lb, ub]).mean())
+    if feval(xmid):  # if evaluation is positive, refine to lower half-interval
+        bounds = (lb, xmid)
+        ndowns += 1
+    else:  # otherwise, refine to upper half-interval
+        bounds = (xmid, ub)
+        nups += 1
+    # Recursive call with newly refined interval
+    return binary_search(
+        feval, *bounds, rtol=rtol, atol=atol, max_nevals=max_nevals, ndowns=ndowns, nups=nups)
