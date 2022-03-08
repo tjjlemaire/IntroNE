@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-03-07 11:22:54
+# @Last Modified time: 2022-03-08 17:08:50
 
 import inspect
 import time
@@ -575,7 +575,9 @@ class Simulation:
 
         :param t: time vector
         :param v: 1D or 2D membrane potential array
-        :return: indexes of detected spikes
+        :return: time indexes of detected spikes:
+            - If a 1D voltage array is provided, a single list is returned.
+            - If a 2D voltage array is provided, a list of lists is returned (1 list per node)
 
         Example use:
         ispikes = sim.detect_spikes(tvec, vnodes)

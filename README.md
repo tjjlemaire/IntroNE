@@ -35,24 +35,24 @@ You can use *Binder* to access and run the notebooks online without a local inst
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE.git/HEAD)
 
-## Session 1 (2022.02.03) - tutorial on the action potential dynamics and Hodgkin-Huxley model.
+## Recitation 1 (2022.02.03) - the action potential dynamics and the Hodgkin-Huxley model.
 
 Notebook name: `tuto_HH.ipynb`
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/1edb281a439b44561ac31d38ddec9c5ae5996e2c?urlpath=lab%2Ftree%2Ftuto_HH.ipynb)
 
-## Session 2 (2022.02.10) - tutorial on extracellular action potentials and recordings.
+## Recitation 2 (2022.02.10) - extracellular action potentials and recordings.
 
 Notebook name: `tuto_extracellular_recordings.ipynb`
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/686ad727554944af541099cf054bb1b8bc0d6fa7?urlpath=lab%2Ftree%2Ftuto_extracellular_recording.ipynb)
 
-## Session 3 (2022.02.17) - tutorial on spike detection and classification.
+## Recitation 3 (2022.02.17) - tutorial on spike detection and classification.
 
 Notebook name: `tuto_spike_sorting.ipynb`
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/67473903c5b828e05e09f08683c38ca6a80a1ff8?urlpath=lab%2Ftree%2Ftuto_spike_sorting.ipynb)
 
 **Note: This tutorial uses a significant amount of RAM, hence execution in the Binder environment will be ridiculously slow. It is therefore highly advised to execute the notebook locally.**
 
-## Session 4 (2022.02.24) - tutorial on extracellular electrical stimulation.
+## Recitation 4 (2022.02.24) - tutorial on extracellular electrical stimulation.
 
 Notebook name: `tuto_extracellular_stim.ipynb`
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/5002b0c8e27b8d4f5e673d4f73bceca946455d37?urlpath=lab%2Ftree%2Ftuto_extracellular_stim.ipynb)
@@ -65,6 +65,8 @@ Notebook name: `homework1.ipynb`
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/7dd03b692e3a80712555b7cbed73d08c8f2ca10d?urlpath=lab%2Ftree%2Fhomework1.ipynb)
 
 ***Note***: for Windows users, you will to download and install a [NEURON](https://www.neuron.yale.edu/neuron/download) distribution in order to run this notebook on your machine.
+
+## Recitation 5 (2022.03.09) - analysis of functional calcium signals (1)
 
 ## Questions
 
