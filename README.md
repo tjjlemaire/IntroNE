@@ -62,11 +62,9 @@ Notebook name: `tuto_extracellular_stim.ipynb`
 ## Homework 1 (2022.03.07)
 
 Notebook name: `homework1.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/7dd03b692e3a80712555b7cbed73d08c8f2ca10d?urlpath=lab%2Ftree%2Fhomework1.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/38702e0294a07db8ace0b77094e5cea1feee7fdf?urlpath=lab%2Ftree%2Fhomework1.ipynb)
 
 ***Note***: for Windows users, you will to download and install a [NEURON](https://www.neuron.yale.edu/neuron/download) distribution in order to run this notebook on your machine.
-
-## Recitation 5 (2022.03.09) - analysis of functional calcium signals (1)
 
 ## Questions
 
