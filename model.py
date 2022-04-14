@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 10:35:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-04-14 12:24:56
+# @Last Modified time: 2022-04-14 22:30:04
 
 import numpy as np
 import re
@@ -34,15 +34,17 @@ class Model:
         self.eq_states = {}
         self.eq_stimdep_states = {}
         self.currents = {}
-    
+        self.stimdep_currents = {}
+            
     def __repr__(self):
-        s = f'[{", ".join(self.currents.keys())}]'
+        s = f'[{", ".join(list(self.currents.keys()) + list(self.stimdep_currents.keys()))}]'
         return f'{self.__class__.__name__}(Cm={self.Cm}uF/cm2, currents={s})'
 
     def copy(self):
         ''' Copy model '''
         other = self.__class__(self.Cm)
         other.currents = self.currents.copy()
+        other.stimdep_currents = self.stimdep_currents.copy()
         other.der_states = self.der_states.copy()
         other.der_stimdep_states = self.der_stimdep_states.copy()
         other.eq_states = self.eq_states.copy()
@@ -69,6 +71,10 @@ class Model:
         ''' Compute dictionary of currents from membrane potential and states dictionary '''
         return {k: v(Vm, x) for k, v in self.currents.items()}
 
+    def compute_stimdep_currents(self, Vm, stim):
+        ''' Compute dictionary of stimulus-dependent currents from membrane potential and stimulus object '''
+        return {k: v(Vm, stim) for k, v in self.stimdep_currents.items()}
+
     def add_state(self, dfunc, eqfunc):
         ''' Add a new state to model states dictionary '''
         key = self.dstate_pattern.match(dfunc.__name__).group(1)
@@ -94,6 +100,13 @@ class Model:
         params = list(inspect.signature(cfunc).parameters.keys())
         params.remove('Vm')
         self.currents[f'i_{key}'] = lambda Vm, x: cfunc(*[x[k] for k in params], Vm)
+    
+    def add_stimdep_current(self, cfunc):
+        ''' Add a new stimulus-dependent current to model stimulus-dependent currents dictionary '''
+        key = self.current_pattern.match(cfunc.__name__).group(1)
+        params = list(inspect.signature(cfunc).parameters.keys())
+        params.remove('Vm')
+        self.stimdep_currents[f'i_{key}'] = lambda Vm, stim: cfunc(Vm, *[getattr(stim, f'{k}_t') for k in params])
 
     def update_current(self, cfunc):
         ''' Update current from model currents dictionary '''
@@ -101,6 +114,13 @@ class Model:
         if f'i_{key}' not in self.currents.keys():
             raise ValueError(f'{key} current not found')
         self.add_current(cfunc)
+    
+    def update_stimdep_current(self, cfunc):
+        ''' Update current from model stimulus-dependent currents dictionary '''
+        key = self.current_pattern.match(cfunc.__name__).group(1)
+        if f'i_{key}' not in self.stimdep_currents.keys():
+            raise ValueError(f'{key} stimulus-dependent current not found')
+        self.add_stimdep_current(cfunc)
     
     @property
     def states_names(self):
@@ -112,14 +132,18 @@ class Model:
         ''' Names of stimulus-dependent states '''
         return list(self.eq_stimdep_states.keys())
 
-    def i_membrane(self, Vm, states):
+    def i_membrane(self, Vm, states, stim):
         ''' net membrane current
 
             :param Vm: membrane potential (mV)
             :param states: states of ion channels gating and related variables
+            :param stim: stimulus object
             :return: current per unit area (uA/cm2)
         '''
-        return sum(self.compute_currents(Vm, states).values())
+        im = sum(self.compute_currents(Vm, states).values())
+        if stim is not None:
+            im += sum(self.compute_stimdep_currents(Vm, stim).values())
+        return im
 
     def derivatives(self, t, y, stim=None):
         ''' Compute system derivatives.
@@ -137,7 +161,7 @@ class Model:
         stimdep_states = rest[nstates:]
         stimdep_states_dict = dict(zip(self.stimdep_states_names, stimdep_states))
         dstimdepstates_dt = self.compute_der_stimdep_states(stim, stimdep_states_dict)
-        dQm_dt = -self.i_membrane(Vm, {**states_dict, **stimdep_states_dict})  # uA/cm2
+        dQm_dt = -self.i_membrane(Vm, {**states_dict, **stimdep_states_dict}, stim)  # uA/cm2
         dVm_dt = dQm_dt / self.Cm  # mV/ms
         if stim is not None and stim.unit == 'uA/cm2':
             dVm_dt += stim.compute(t)
@@ -150,7 +174,7 @@ class Model:
         else:
             stimdep_ss = self.compute_eq_stimdep_states(stim)
             return brentq(  # steady-state membrane potential (mV)
-                lambda v: self.i_membrane(v, {**self.compute_eq_states(v), **stimdep_ss}), -100., 50.)
+                lambda v: self.i_membrane(v, {**self.compute_eq_states(v), **stimdep_ss}, stim), -100., 50.)
 
     def equilibrium(self, stim):
         ''' Compute model equilibrium state '''
