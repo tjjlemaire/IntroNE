@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-01-31 10:35:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-04-14 22:30:04
+# @Last Modified time: 2022-04-14 23:36:34
 
 import numpy as np
 import re
@@ -83,6 +83,13 @@ class Model:
         self.der_states[key] = lambda Vm, x: dfunc(*[x[k] for k in params], Vm)
         self.eq_states[key] = eqfunc
     
+    def remove_state(self, name):
+        ''' Remove a state from the model states dictionary '''
+        try:
+            del self.states[name]
+        except KeyError:
+            raise ValueError(f'{name} is not found in model states')
+    
     def add_stimdep_state(self, dfunc, eqfunc, stimparams=None):
         ''' Add a new stimulus-dependent state to model stimulus-dependent states dictionary '''
         key = self.dstate_pattern.match(dfunc.__name__).group(1)
@@ -93,6 +100,13 @@ class Model:
                     params.remove(k)
         self.der_stimdep_states[key] = lambda stim, x: dfunc(*[x[k] for k in params], *[getattr(stim, f'{k}_t') for k in stimparams])
         self.eq_stimdep_states[key] = lambda stim: eqfunc(*[getattr(stim, f'{k}_t') for k in stimparams])
+    
+    def remove_stimdep_state(self, name):
+        ''' Remove a stimulus-dependent state from the model states dictionary '''
+        try:
+            del self.states[name]
+        except KeyError:
+            raise ValueError(f'{name} is not found in model stimulus-dependent states')
 
     def add_current(self, cfunc):
         ''' Add a new current to model currents dictionary '''
@@ -101,12 +115,26 @@ class Model:
         params.remove('Vm')
         self.currents[f'i_{key}'] = lambda Vm, x: cfunc(*[x[k] for k in params], Vm)
     
+    def remove_current(self, name):
+        ''' Remove a current from the model currents dictionary '''
+        try:
+            del self.currents[name]
+        except KeyError:
+            raise ValueError(f'{name} is not found in model currents')
+    
     def add_stimdep_current(self, cfunc):
         ''' Add a new stimulus-dependent current to model stimulus-dependent currents dictionary '''
         key = self.current_pattern.match(cfunc.__name__).group(1)
         params = list(inspect.signature(cfunc).parameters.keys())
         params.remove('Vm')
         self.stimdep_currents[f'i_{key}'] = lambda Vm, stim: cfunc(Vm, *[getattr(stim, f'{k}_t') for k in params])
+    
+    def remove_stimdep_current(self, name):
+        ''' Remove a stimulus-dependent current from the model stimulus-dependent currents dictionary '''
+        try:
+            del self.stimdep_currents[name]
+        except KeyError:
+            raise ValueError(f'{name} is not found in model stimulus-dependent currents')
 
     def update_current(self, cfunc):
         ''' Update current from model currents dictionary '''
@@ -167,7 +195,7 @@ class Model:
             dVm_dt += stim.compute(t)
         return [dVm_dt, *dstates_dt.values(), *dstimdepstates_dt.values()]
 
-    def get_Veq(self, stim):
+    def get_Veq(self, stim=None):
         ''' Compute model equilibrium membrane potential '''
         if not self.currents:
             return 0.
