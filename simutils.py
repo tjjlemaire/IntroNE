@@ -2,10 +2,11 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-02 15:58:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-03-07 11:20:59
+# @Last Modified time: 2022-04-13 19:07:54
 
 import logging
 import numpy as np
+from scipy.signal import find_peaks
 from IPython.display import display
 from ipywidgets import interact, FloatSlider, VBox, interactive_output
 from logger import logger
@@ -30,7 +31,7 @@ def simulate(model, tstop, stim=None, dt=DT):
     logger.info(f'{s} for {tstop:.1f} ms...')
 
     # Set initial conditions
-    y0 = model.equilibrium()
+    y0 = model.equilibrium(stim)
 
     # Initialize solver
     varkeys = y0.keys()  # variables
@@ -48,6 +49,19 @@ def simulate(model, tstop, stim=None, dt=DT):
     
     # Compute solution
     return solver(y0, tstop)
+
+
+def detect_spikes(data):
+    '''
+    Detect spikes in simulation output data.
+
+    :param data: simulattion results dataframe
+    :return: time indexes of detected spikes:
+
+    Example use:
+    ispikes = detect_spikes(data)
+    '''
+    return find_peaks(data[V_MV], height=0., prominence=30.)[0]
 
 
 def sim_and_plot(model, I=0, tpulse=30., tstop=60., tstart=5., hard_ylims=False, **kwargs):
