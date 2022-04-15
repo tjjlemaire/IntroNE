@@ -69,7 +69,7 @@ Notebook name: `homework1.ipynb`
 ## Homework 1 (2022.04.15)
 
 Notebook name: `hw2.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/37e7c5748667d4c5d8f5727f84d0a1debb7c1a90?urlpath=lab%2Ftree%2Fhw2.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/cec33b683ebe7df01ecfd81b26f582464aa4226b?urlpath=lab%2Ftree%2Fhw2.ipynb)
 
 ## Questions
 
