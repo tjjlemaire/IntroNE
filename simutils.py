@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-02 15:58:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-04-13 19:07:54
+# @Last Modified time: 2022-04-15 07:31:50
 
 import logging
 import numpy as np
@@ -55,8 +55,8 @@ def detect_spikes(data):
     '''
     Detect spikes in simulation output data.
 
-    :param data: simulattion results dataframe
-    :return: time indexes of detected spikes:
+    :param data: simulation results DataFrame
+    :return: time indexes of detected spikes
 
     Example use:
     ispikes = detect_spikes(data)
