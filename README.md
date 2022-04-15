@@ -66,7 +66,7 @@ Notebook name: `homework1.ipynb`
 
 ***Note***: for Windows users, you will to download and install a [NEURON](https://www.neuron.yale.edu/neuron/download) distribution in order to run this notebook on your machine.
 
-## Homework 1 (2022.04.15)
+## Homework 2 (2022.04.15)
 
 Notebook name: `hw2.ipynb`
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/cec33b683ebe7df01ecfd81b26f582464aa4226b?urlpath=lab%2Ftree%2Fhw2.ipynb)
