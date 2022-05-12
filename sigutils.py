@@ -2,11 +2,15 @@
 # @Author: Theo Lemaire
 # @Date:   2022-02-11 14:35:21
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-02-16 09:49:08
+# @Last Modified time: 2022-05-11 14:12:19
 
+from turtle import back
 import numpy as np
 import random
 from scipy.signal import welch, butter, filtfilt, find_peaks
+from scipy.ndimage.filters import maximum_filter
+from scipy.ndimage import label
+from scipy.ndimage.morphology import binary_erosion
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -408,3 +412,48 @@ def plot_PCs_and_spikes_per_cluster(pca_data, spikes_data, clusters, fs, labels=
     plot_principal_components(pca_data, ax=axes[0], clusters=clusters, labels=labels)
     plot_spikes(spikes_data, fs, clusters=clusters, ax=axes[1], thr=Vthr, labels=labels)
     return fig
+
+
+
+
+def detect_peaks_2D(data, n=5):
+    '''
+    Detect peaks in an image using the local maximum filter
+
+    :param data: 2D array representing the image
+    :return: 2D boolean mask of the peaks (i.e. 1 when the pixel's value
+        is the neighborhood maximum, 0 otherwise)
+    '''
+    data = data.astype(float)
+    data -= data.min()
+    data /= data.max()
+
+    # Create footprint array
+    footprint = np.ones((n, n))
+
+    # Apply the local maximum filter
+    local_max = maximum_filter(data, footprint=footprint)
+
+    # Generate binary mask containing peak locations
+    mask = local_max == data
+
+    # We create the mask of the background
+    background = data == 0
+
+    # a little technicality: we must erode the background in order to 
+    # successfully subtract it from local_max, otherwise a line will 
+    # appear along the background border (artifact of the local maximum filter)
+    eroded_background = binary_erosion(background, structure=footprint, border_value=1)
+
+    # Remove background from the local_max mask (xor operation)
+    peaks_mask = mask ^ eroded_background
+
+    # Label peaks from mask
+    labeled_peaks, npeaks = label(peaks_mask)
+    logger.info(f'detected {npeaks} peaks')
+
+    # Get peak locations
+    peaklocs = np.array([
+        [v[0] for v in np.where(labeled_peaks == i)] for i in range(1, npeaks + 1)])
+    
+    return peaklocs

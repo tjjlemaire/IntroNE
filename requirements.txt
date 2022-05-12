@@ -3,6 +3,8 @@ tqdm
 numpy
 scipy
 pandas
+tifffile
+numpy_image_widget
 matplotlib
 seaborn
 ipywidgets
