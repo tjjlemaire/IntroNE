@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2021-10-05 17:56:34
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-05-12 09:03:24
+# @Last Modified time: 2022-05-12 09:46:15
 
 ''' Tiff loading / viewing / saving utilities. '''
 
@@ -142,6 +142,7 @@ class StackViewer:
 
 
 def viewstack(stack, *args, **kwargs):
+    ''' View a movie stack interactively in a Jupyter notebook '''
     viewer = StackViewer(stack, *args, **kwargs)
     return viewer.gui
 
@@ -175,13 +176,21 @@ def plot_frame(data, cmap='viridis', title=None, um_per_px=None, peaklocs=None):
 
 
 def load_traces(fpath):
+    '''
+    Load traces file
+    
+    :param fpath: path to input file
+    :return: 3-tuple with:
+        - traces dataframe
+        - number of trials
+        - number ofr frames per trial
+    '''
     dff_traces = pd.read_csv(fpath, index_col=['trial', 'frame'])
     ntrials = len(dff_traces.index.unique(level='trial'))
     npertrial = len(dff_traces.index.unique(level='frame'))
     ncells = len(dff_traces.columns)
     logger.info(f'loaded {ntrials * npertrial} frames fluorescence traces of {ncells} cells')
     return dff_traces, ntrials, npertrial
-
 
 
 def plot_traces(traces, delimiters=None, fs=None):
@@ -193,7 +202,6 @@ def plot_traces(traces, delimiters=None, fs=None):
     :param fs (optional): sampling frequency (Hz)
     :return: figure handle
     '''
-
     fig, ax = plt.subplots(figsize=(11, 3))
     sns.despine(ax=ax)
     if fs is None:

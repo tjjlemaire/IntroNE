@@ -71,6 +71,12 @@ Notebook name: `homework1.ipynb`
 Notebook name: `hw2.ipynb`
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/92a7eef4d2888c425831b6949342c273b5a88807?urlpath=lab%2Ftree%2Fhw2.ipynb)
 
+## Homework 3 (2022.05.12)
+
+Notebook name: `hw3.ipynb`
+
+**This notebook requires some input data to run.**
+
 ## Questions
 
 For any questions, you can contact me by email: *theo.lemaire@nyulangone.org*
