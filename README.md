@@ -74,7 +74,7 @@ Notebook name: `hw2.ipynb`
 ## Homework 3 (2022.05.12)
 
 Notebook name: `hw3.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/9a591d79189f80e412e5cbe1203fbbadf0e7746f?urlpath=lab%2Ftree%2Fhw3.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/af704874aeaa20d1cf2c629f2e9f0c841ef8bc08?urlpath=lab%2Ftree%2Fhw3.ipynb)
 
 **This notebook requires some input data to run. Make sure to follow the assignment instructions for how to download and extract the dataset.**
 
