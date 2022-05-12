@@ -74,7 +74,6 @@ Notebook name: `hw2.ipynb`
 ## Homework 3 (2022.05.12)
 
 Notebook name: `hw3.ipynb`
-
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/9a591d79189f80e412e5cbe1203fbbadf0e7746f?urlpath=lab%2Ftree%2Fhw3.ipynb)
 
 **This notebook requires some input data to run.**
