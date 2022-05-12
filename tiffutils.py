@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2021-10-05 17:56:34
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-05-12 09:46:15
+# @Last Modified time: 2022-05-12 12:55:55
 
 ''' Tiff loading / viewing / saving utilities. '''
 
@@ -186,6 +186,8 @@ def load_traces(fpath):
         - number ofr frames per trial
     '''
     dff_traces = pd.read_csv(fpath, index_col=['trial', 'frame'])
+    # quick fix: only 3 cells
+    dff_traces = dff_traces.iloc[:, :3]
     ntrials = len(dff_traces.index.unique(level='trial'))
     npertrial = len(dff_traces.index.unique(level='frame'))
     ncells = len(dff_traces.columns)
