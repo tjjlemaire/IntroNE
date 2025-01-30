@@ -35,48 +35,14 @@ You can use *Binder* to access and run the notebooks online without a local inst
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE.git/HEAD)
 
-## Recitation 1 (2022.02.03) - the action potential dynamics and the Hodgkin-Huxley model.
+## Recitations schedule
 
-Notebook name: `tuto_HH.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/1edb281a439b44561ac31d38ddec9c5ae5996e2c?urlpath=lab%2Ftree%2Ftuto_HH.ipynb)
+- **2025.01.30**: the action potential dynamics and the Hodgkin-Huxley model (`tuto_HH.ipynb`)
+- **2025.02.06**: extracellular action potentials and recordings (`tuto_extracellular_recordings.ipynb`)
+- **2025.02.13**: spike detection and classification (`tuto_spike_sorting.ipynb`) *This tutorial uses a significant amount of RAM, hence execution in the Binder environment will be ridiculously slow. It is therefore highly advised to execute the notebook locally.*
+- **2025.02.20**: extracellular electrical stimulation (`tuto_extracellular_stim.ipynb`) *For Windows users, you will to download and install a [NEURON](https://www.neuron.yale.edu/neuron/download) distribution in order to run this notebook on your machine.*
 
-## Recitation 2 (2022.02.10) - extracellular action potentials and recordings.
-
-Notebook name: `tuto_extracellular_recordings.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/686ad727554944af541099cf054bb1b8bc0d6fa7?urlpath=lab%2Ftree%2Ftuto_extracellular_recording.ipynb)
-
-## Recitation 3 (2022.02.17) - tutorial on spike detection and classification.
-
-Notebook name: `tuto_spike_sorting.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/67473903c5b828e05e09f08683c38ca6a80a1ff8?urlpath=lab%2Ftree%2Ftuto_spike_sorting.ipynb)
-
-**Note: This tutorial uses a significant amount of RAM, hence execution in the Binder environment will be ridiculously slow. It is therefore highly advised to execute the notebook locally.**
-
-## Recitation 4 (2022.02.24) - tutorial on extracellular electrical stimulation.
-
-Notebook name: `tuto_extracellular_stim.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/5002b0c8e27b8d4f5e673d4f73bceca946455d37?urlpath=lab%2Ftree%2Ftuto_extracellular_stim.ipynb)
-
-***Note***: for Windows users, you will to download and install a [NEURON](https://www.neuron.yale.edu/neuron/download) distribution in order to run this notebook on your machine.
-
-## Homework 1 (2022.03.07)
-
-Notebook name: `homework1.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/38702e0294a07db8ace0b77094e5cea1feee7fdf?urlpath=lab%2Ftree%2Fhomework1.ipynb)
-
-***Note***: for Windows users, you will to download and install a [NEURON](https://www.neuron.yale.edu/neuron/download) distribution in order to run this notebook on your machine.
-
-## Homework 2 (2022.04.15)
-
-Notebook name: `hw2.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/92a7eef4d2888c425831b6949342c273b5a88807?urlpath=lab%2Ftree%2Fhw2.ipynb)
-
-## Homework 3 (2022.05.12)
-
-Notebook name: `hw3.ipynb`
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE/af704874aeaa20d1cf2c629f2e9f0c841ef8bc08?urlpath=lab%2Ftree%2Fhw3.ipynb)
-
-**This notebook requires some input data to run. Make sure to follow the assignment instructions for how to download and extract the dataset.**
+## Homeworks schedule: T.B.D.
 
 ## Questions
 
