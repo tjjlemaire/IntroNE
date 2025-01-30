@@ -2,9 +2,11 @@
 
 Code material for the interactive recitations and homeworks of the NYU course ***Introduction to Neural Engineering***.
 
-These recitations are based on Jupyter notebooks that can be either run locally on your laptop, or executed in an online [Binder](https://mybinder.org) environment.
+These recitations are based on Jupyter notebooks that can be executed either locally on your laptop (this will require some installations, see instructions below) or online in the following *Binder* environment (does not required any installation):
 
-## Local use
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE.git/HEAD)
+
+## Local use instructions
 
 ### Installation
 
@@ -28,12 +30,6 @@ These recitations are based on Jupyter notebooks that can be either run locally 
 - Open the notebook of interest by double-clicking on it
 - In the upper right corner, make sure that jupyter is running with the right kernel (`Python 3.8.12 64-bit ('introne': conda)`). If not, click and select the appropriate kernel from the drop-down list.
 - You're all set!
-
-## Online use
-
-You can use *Binder* to access and run the notebooks online without a local installation:
-
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tjjlemaire/IntroNE.git/HEAD)
 
 ## Recitations schedule
 
