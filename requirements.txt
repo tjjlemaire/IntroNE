@@ -10,5 +10,5 @@ seaborn
 ipywidgets
 jupyterlab
 ipympl
-sklearn
+scikit-learn
 neuron
