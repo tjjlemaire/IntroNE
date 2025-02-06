@@ -33,10 +33,10 @@ These recitations are based on Jupyter notebooks that can be executed either loc
 
 ## Recitations schedule
 
-- **2025.01.30**: the action potential dynamics and the Hodgkin-Huxley model (`tuto_HH.ipynb`)
-- **2025.02.06**: extracellular action potentials and recordings (`tuto_extracellular_recordings.ipynb`)
-- **2025.02.13**: spike detection and classification (`tuto_spike_sorting.ipynb`) *This tutorial uses a significant amount of RAM, hence execution in the Binder environment will be ridiculously slow. It is therefore highly advised to execute the notebook locally.*
-- **2025.02.20**: extracellular electrical stimulation (`tuto_extracellular_stim.ipynb`) *For Windows users, you will to download and install a [NEURON](https://www.neuron.yale.edu/neuron/download) distribution in order to run this notebook on your machine.*
+- **2025.01.30**: the basics of action potential dynamics (`recitation1_AP_basics.ipynb`)
+- **2025.02.06**: extracellular action potentials and recordings (`recitation2_ext_recording.ipynb`)
+- **2025.02.13**: spike detection and classification (`recitation3_spikesorting.ipynb`) *This tutorial uses a significant amount of RAM, hence execution in the Binder environment will be very slow. It is therefore highly advised to execute the notebook locally.*
+- **2025.02.20**: extracellular electrical stimulation (`recitation4_ext_stim.ipynb`) *For Windows users, you will to download and install a [NEURON](https://www.neuron.yale.edu/neuron/download) distribution if you want to run this notebook on your machine.*
 
 ## Homeworks schedule: T.B.D.
 
