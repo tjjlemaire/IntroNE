@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-05 14:08:31
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2022-03-08 17:08:50
+# @Last Modified time: 2025-02-20 13:46:23
 
 import inspect
 import time
@@ -16,6 +16,7 @@ from neuron import h
 from IPython.display import display
 from ipywidgets import FloatSlider, FloatLogSlider, VBox, interactive_output
 from scipy.signal import find_peaks
+from functools import wraps
 
 from constants import *
 from logger import logger
@@ -198,7 +199,8 @@ class Simulation:
             - vnodes is a 2D (nnodes x nsamples) array of voltage values for each axon node over time (in mV)
         '''
         self.rel_phis = self.get_phi(self.axon.xsections)
-        self.tstop = max(10., 1.5 * self.stim.stim_events()[-1][0])
+        # self.tstop = max(10., 1.5 * self.stim.stim_events()[-1][0])
+        self.tstop = 10.
         if verbose:
             logger.info(f'simulating {self.axon} stimulation by {self.stim}...')
         tstart = time.perf_counter()
@@ -553,7 +555,7 @@ class Simulation:
         else:
             axes = fig.axes
             update = True
-        # Plot results   
+        # Plot results
         self.plot_vmap(tvec, vnodes, ax=axes[0], update=update, redraw=False)
         self.plot_vtraces(tvec, vnodes, ax=axes[1], inodes=inodes, update=update, redraw=False, mark_spikes=mark_spikes)
         self.plot_Itrace(ax=axes[2], update=update, redraw=False)        
@@ -642,6 +644,12 @@ def interactive_display(sim, updatefunc, *refsliders):
     # Call update once to generate initial figure
     fig = updatefunc(sim, *[s.value for s in sliders])
     # Define update wrapper for further figure updates
+    # def update(*args, fig=None, **kwargs):
+    #     try:
+    #         out = updatefunc(sim, *args, fig=fig, **kwargs)
+    #     except IndexError:
+    #         pass
+    #     return out
     update = lambda *args, **kwargs: updatefunc(sim, *args, fig=fig, **kwargs)
     # Create UI and render interactive display 
     ui = VBox(sliders)
